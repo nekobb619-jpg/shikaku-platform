@@ -30,7 +30,7 @@ function openMenu() {
     const quizSource = (typeof loadedQuestions !== 'undefined') ? loadedQuestions : [];
     
     if (quizSource.length === 0) {
-        container.innerHTML = `<div style="color:#ef8354; text-align:center; padding:20px;">⚠️ 問題データ(takken.js)が読み込めていません。</div>`;
+        container.innerHTML = `<div style="color:#ef8354; text-align:center; padding:20px;">⚠️ 問題データが読み込めていません。</div>`;
         showView('menu-view');
         return;
     }
@@ -134,6 +134,7 @@ function showInlineGlossary(term) {
 }
 
 function loadStage(index) {
+    const quizSource = (typeof loadedQuestions !== 'undefined') ? loadedQuestions : [];
     document.querySelectorAll('.fixed-character, .keyword-slot, .puzzle-piece').forEach(el => el.remove());
     document.getElementById('answer-btn-wrapper').innerHTML = '';
     document.getElementById('tray-container').innerHTML = ''; 
@@ -144,17 +145,19 @@ function loadStage(index) {
     
     document.getElementById('glossary-container').style.display = 'none';
     document.getElementById('answer-selection-zone').style.display = 'none';
-    document.getElementById('tray-outer').style.display = 'flex';
     
-    const controlBar = document.getElementById('control-bar');
-    controlBar.innerHTML = `<button id="finish-experiment-btn" class="action-btn" onclick="finishSimulation()">実験終了、答える！</button>`;
+    // コントロールバーとトレイの基本表示状態リセット
+    document.getElementById('control-bar').style.display = 'flex';
+    const mainBtn = document.getElementById('finish-experiment-btn');
+    mainBtn.style.display = 'block';
+    mainBtn.innerText = '実験終了、答える！';
+    mainBtn.onclick = () => finishSimulation();
     
-    const quizSource = (typeof loadedQuestions !== 'undefined') ? loadedQuestions : [];
     if (index >= quizSource.length) { alert('全問クリア！ホームに戻ります。'); showView('home-view'); return; }
 
     const data = quizSource[index]; currentStageData = data;
     document.getElementById('stage-title').innerText = data.title;
-    document.getElementById('stage-category').innerText = data.category || "本試験過去問シミュレーション";
+    document.getElementById('stage-category').innerText = data.category || "実践過去問シミュレーション";
     document.getElementById('question-box').innerHTML = processText(data.problem_statement, data);
 
     const scaleZone = document.getElementById('balance-scale'); 
@@ -171,20 +174,22 @@ function loadStage(index) {
     if(land) land.style.display = 'none';
 
     if(land && data.moving_object) {
-        land.innerHTML = `${data.moving_object.icon || "🏠"}<span id="land-sub">所有権</span>`;
+        land.innerHTML = `${data.moving_object.icon || "🏠"}<span id="land-sub">対象</span>`;
     }
 
     if (data.ui_mode === 'SCALE') {
-        scaleZone.style.display = 'flex'; land.style.display = 'flex';
-        document.getElementById('scale-left').innerText = data.scale_left_text || "-"; 
-        document.getElementById('scale-right').innerText = data.scale_right_text || "-";
+        document.getElementById('tray-outer').style.display = 'flex';
+        if(scaleZone) scaleZone.style.display = 'flex'; 
+        if(land) land.style.display = 'flex';
+        document.getElementById('scale-left').innerText = data.scale_left_text || "左皿"; 
+        document.getElementById('scale-right').innerText = data.scale_right_text || "右皿";
         
-        const leftLabel = (data.scale_left_text || "Bの勝ち").replace(/⚖️\s*/, '').split('（')[0];
-        const rightLabel = (data.scale_right_text || "Cの勝ち").replace(/⚖️\s*/, '').split('（')[0];
+        const leftLabel = (data.scale_left_text || "候補A").replace(/⚖️\s*/, '').split('（')[0];
+        const rightLabel = (data.scale_right_text || "候補B").replace(/⚖️\s*/, '').split('（')[0];
         const dummyChars = [
-            { id: "char-left", name: leftLabel, role: "買主(契約者)", x: 20, y: 60 },
-            { id: "char-center", name: "売主側(A等)", role: "トラブル元", x: 50, y: 85 },
-            { id: "char-right", name: rightLabel, role: "もう一人の買主", x: 80, y: 60 }
+            { id: "char-left", name: leftLabel, role: "当事者", x: 20, y: 60 },
+            { id: "char-center", name: "売主側", role: "トラブル元", x: 50, y: 85 },
+            { id: "char-right", name: rightLabel, role: "当事者", x: 80, y: 60 }
         ];
         dummyChars.forEach(c => {
             const el = document.createElement('div'); el.className = 'fixed-character'; el.id = c.id;
@@ -196,16 +201,19 @@ function loadStage(index) {
         document.getElementById('commentary-text').innerText = '下のトレイからパーツを運んで実験してみよう！';
 
     } else if (data.ui_mode === 'SORT_BOX') {
-        sortZone.style.display = 'flex';
-        document.getElementById('sort-title-left').innerText = data.scale_left_text || "不可の箱"; 
-        document.getElementById('sort-title-right').innerText = data.scale_right_text || "可能の箱";
+        document.getElementById('tray-outer').style.display = 'flex';
+        if(sortZone) sortZone.style.display = 'flex';
+        document.getElementById('sort-title-left').innerText = data.scale_left_text || "NG"; 
+        document.getElementById('sort-title-right').innerText = data.scale_right_text || "OK";
         document.getElementById('sort-box-left').classList.remove('correct-flash'); 
         document.getElementById('sort-box-right').classList.remove('correct-flash');
         document.getElementById('commentary-text').innerText = '下のトレイからパーツを運んで仕分けてみよう！';
 
     } else if (data.ui_mode === 'FLOW') {
-        flowZone.style.display = 'block'; land.style.display = 'flex';
-        const labels = data.flow_labels || { checkpoint: "🔍 市街化区域<br>【1,000㎡制限】", left_goal: data.scale_left_text || "必要", right_goal: data.scale_right_text || "不要" };
+        document.getElementById('tray-outer').style.display = 'flex';
+        if(flowZone) flowZone.style.display = 'block'; 
+        if(land) land.style.display = 'flex';
+        const labels = data.flow_labels || { checkpoint: "🔍 条件分岐の関所", left_goal: data.scale_left_text || "必要", right_goal: data.scale_right_text || "不要" };
         const ck = document.getElementById('flow-checkpoint'); if(ck) ck.innerHTML = labels.checkpoint; 
         const lg = document.getElementById('flow-goal-left'); if(lg) lg.innerHTML = labels.left_goal; 
         const rg = document.getElementById('flow-goal-right'); if(rg) rg.innerHTML = labels.right_goal;
@@ -214,11 +222,11 @@ function loadStage(index) {
         document.getElementById('commentary-text').innerText = '下のトレイからパーツを運んで実験してみよう！';
 
     } else if (data.ui_mode === 'SLIDER_LIMIT') {
-        sliderZone.style.display = 'flex';
-        document.getElementById('tray-outer').style.display = 'none'; 
+        if(sliderZone) sliderZone.style.display = 'flex';
+        document.getElementById('tray-outer').style.display = 'none'; // スライダー問題はトレイ不要
         document.getElementById('commentary-text').innerText = 'スライダーを動かして、制限基準値の限界をシミュレーションしよう！';
         
-        const sc = data.slider_config || { min: 0, max: 200, limit: 100, unit: "㎡", label: "建築面積", start: 50 };
+        const sc = data.slider_config || { min: 0, max: 200, limit: 100, unit: "㎡", label: "値", start: 50 };
         const slider = document.getElementById('building-slider');
         slider.min = sc.min; slider.max = sc.max; slider.value = sc.start;
         
@@ -238,7 +246,7 @@ function loadStage(index) {
             
             if(val > sc.limit) {
                 box.classList.add('building-over');
-                document.getElementById('commentary-text').innerText = "🚨 制限オーバー！このままでは違法・超過（NG）になってしまいます！";
+                document.getElementById('commentary-text').innerText = "🚨 制限オーバー！このままでは超過（NG）してしまいます！";
             } else {
                 box.classList.remove('building-over');
                 document.getElementById('commentary-text').innerText = "✅ 基準内クリア！この範囲であれば適法（OK）です。";
@@ -348,7 +356,10 @@ function finishSimulation() {
         p.style.opacity = "0.3"; 
     });
 
+    // 🌟 修正：実験終了時に固定のコントロールバーとトレイを完全に非表示にして4択画面を表示
     document.getElementById('control-bar').style.display = 'none';
+    document.getElementById('tray-outer').style.display = 'none';
+    
     document.getElementById('answer-selection-zone').style.display = 'flex';
     document.getElementById('commentary-text').innerText = "💡 実験終了！本試験の4択から、正しいと思う選択肢を選ぼう！";
 }
@@ -384,6 +395,7 @@ function closeModal() {
 
 function nextStage() { 
     const controlBar = document.getElementById('control-bar');
+    // 次の問題に進む、または初期化する時は「実験終了、答える！」ボタンの構造にリセットする
     controlBar.innerHTML = `<button id="finish-experiment-btn" class="action-btn" onclick="finishSimulation()">実験終了、答える！</button>`;
     
     if(isRandomMode) startRandomPlay(); 
@@ -445,6 +457,7 @@ function updateConfetti() {
     requestAnimationFrame(updateConfetti);
 }
 
+// 起動処理
 window.onload = () => { loadUserData(); showView('home-view'); };
 window.onresize = () => {
     if(currentStageData && currentStageData.ui_mode !== 'SLIDER_LIMIT' && currentStageData.ui_mode !== 'SORT_BOX') {

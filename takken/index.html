@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>宅建法律ラボ</title>
     <style>
-        /* 共通リセット */
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: #1a1a20; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
         
@@ -14,11 +13,8 @@
 
         /* ホーム画面 */
         #home-view { padding: 20px; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a20, #242430); position: relative; }
-        
-        /* 🌟 追加：ポータルに戻るボタン */
         .portal-back-btn { position: absolute; top: 20px; left: 20px; background: transparent; border: 1px solid #4f5d75; color: #aeaeae; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
         .portal-back-btn:active { background: #3d3d4d; }
-
         .app-title { font-size: 2rem; color: #ffbc42; margin-top: 30px; margin-bottom: 5px; text-align: center; line-height: 1.2; font-weight: bold; }
         .app-subtitle { font-size: 0.9rem; color: #4ecdc4; margin-bottom: 20px; text-align: center; }
         .status-card { background: #2d3142; border: 2px solid #4f5d75; border-radius: 12px; padding: 15px; margin-bottom: 30px; text-align: center; width: 100%; max-width: 300px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
@@ -29,20 +25,17 @@
         .exp-bar-fill { background: linear-gradient(90deg, #ffbc42, #ef8354); height: 100%; width: 0%; transition: width 0.5s ease; }
         .exp-text { font-size: 0.75rem; color: #aeaeae; margin-top: 6px; font-weight: bold; }
         .main-menu-btn { width: 100%; max-width: 300px; padding: 15px; margin-bottom: 15px; background: #2d3142; border: 2px solid #4f5d75; border-radius: 12px; color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-        .main-menu-btn:active { transform: scale(0.95); }
         .btn-play { border-color: #ef8354; background: rgba(239, 131, 84, 0.1); }
         .btn-random { border-color: #4ecdc4; background: rgba(78, 205, 196, 0.1); }
         .btn-dict { border-color: #ffbc42; background: rgba(255, 188, 66, 0.1); }
 
         /* サブメニュー・用語集 */
-        #menu-view, #dict-view { background: #1a1a20; }
         .header-bar { background: #242430; padding: 15px; border-bottom: 2px solid #333344; display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
         .back-btn { background: #3d3d4d; border: none; color: white; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .category-container, .dict-list { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 20px; }
         .category-section-title { font-size: 1.1rem; color: #ffbc42; border-bottom: 1px solid #4f5d75; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; }
         .problem-list { display: flex; flex-direction: column; gap: 10px; }
         .problem-item-btn { padding: 12px; background: #2d3142; border: 1px solid #4f5d75; border-radius: 8px; color: white; text-align: left; cursor: pointer; }
-        .problem-item-btn:active { background: #3d3d4d; }
         .problem-item-btn span { font-size: 0.75rem; color: #4ecdc4; font-weight: bold; }
         .dict-item { background: #242430; padding: 15px; border-left: 4px solid #ffbc42; border-radius: 8px; display: flex; gap: 15px; align-items: flex-start; }
         .dict-icon { font-size: 2.5rem; background: #2d3142; padding: 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center;}
@@ -66,8 +59,8 @@
         #live-commentary-board { background: rgba(78, 205, 196, 0.1); border: 1px dashed #4ecdc4; border-radius: 6px; padding: 8px; text-align: center; }
         #commentary-text { font-size: 0.8rem; font-weight: bold; color: #4ecdc4; line-height: 1.3;}
 
-        /* ② 中央：実験キャンバス（スクロール対応） */
-        #canvas-outer { position: relative; flex: 1; width: 100%; background: #111116; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+        /* ② 中央：実験キャンバス（下部に固定バーの余白をマージンで確保：margin-bottom） */
+        #canvas-outer { position: relative; flex: 1; width: 100%; background: #111116; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; margin-bottom: calc(8vh + 14vh); }
         #canvas-container { position: relative; width: 100%; min-height: 340px; height: 100%; }
         
         #balance-scale { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 60%; max-width: 280px; height: 80px; border: 3px solid #4f5d75; border-top: none; border-radius: 0 0 20px 20px; display: flex; justify-content: space-between; align-items: flex-end; padding: 8px; }
@@ -101,22 +94,22 @@
         #building-slider { width: 100%; margin-top: 8px; accent-color: #4ecdc4; }
         #slider-value-disp { font-size: 1rem; font-weight: bold; color: #ffbc42; }
 
-        /* 🌟 4肢択一対応ポップアップ */
+        /* 🌟 4肢択一対応ポップアップ（固定バーの上に浮遊追従） */
         #answer-selection-zone { display: none; position: fixed; bottom: calc(8vh + 10px); left: 50%; transform: translateX(-50%); width: 94%; max-width: 420px; background: rgba(21, 21, 31, 0.98); border: 2px solid #4ecdc4; border-radius: 12px; padding: 12px; flex-direction: column; align-items: center; justify-content: center; z-index: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.7); max-height: 45vh; overflow-y: auto; }
         #answer-btn-wrapper { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 8px; }
         .choice-btn { width: 100%; padding: 10px 15px; background: #2d3142; border: 1px solid #4f5d75; border-radius: 8px; color: #fff; font-size: 0.8rem; text-align: left; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.3; }
         .choice-btn:active { background: #3d3d4d; }
 
-        /* ③ 下部トレイ */
-        #tray-outer { background: #1c1c24; height: 14vh; width: 100%; overflow-x: auto; white-space: nowrap; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); flex-shrink: 0; display: flex; align-items: center; border-top: 1px solid #2d2d3d;}
+        /* ③ 下部トレイ（画面最下部から8vh浮かせた位置に固定：bottom: 8vh） */
+        #tray-outer { position: fixed; bottom: 8vh; left: 0; background: #1c1c24; height: 14vh; width: 100%; overflow-x: auto; white-space: nowrap; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; border-top: 1px solid #2d2d3d; z-index: 450; }
         #tray-container { display: inline-flex; align-items: center; height: 100%; padding: 0 10px; gap: 12px; }
         .puzzle-piece { width: 140px; height: 48px; background: linear-gradient(135deg, #4f5d75, #2d3142); border: 2px solid #ef8354; border-radius: 10px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; text-align: center; white-space: normal; line-height: 1.25; z-index: 100; user-select: none; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
         
-        /* ④ 最下部固定コントロールバー */
-        #control-bar { height: 8vh; width: 100%; display: flex; justify-content: center; align-items: center; padding: 5px; background: #15151f; flex-shrink: 0; border-top: 2px solid #2d3142; z-index: 500; }
+        /* ④ 🌟 核心の修正：最下部固定コントロールバー（position: fixed にして画面最底面に強制固定） */
+        #control-bar { position: fixed; bottom: 0; left: 0; height: 8vh; width: 100%; display: flex; justify-content: center; align-items: center; padding: 5px; background: #15151f; border-top: 2px solid #2d3142; z-index: 500; }
         .action-btn { padding: 10px 40px; background: #ef8354; border: none; border-radius: 25px; color: #fff; font-weight: bold; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; cursor: pointer;}
         
-        /* モーダル群 */
+        /* モーダル */
         #result-modal, #levelup-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
         #levelup-modal { z-index: 2000; }
         .modal-content { background: #242430; border: 2px solid #4ecdc4; border-radius: 12px; padding: 20px; max-width: 400px; width: 100%; text-align: center; }
@@ -127,12 +120,10 @@
     </style>
 </head>
 <body>
-
     <canvas id="confetti-canvas"></canvas>
 
     <div id="home-view" class="view-section active">
         <button class="portal-back-btn" onclick="window.location.href='../index.html'">◀ 資格選択に戻る</button>
-
         <div class="app-title">宅建法律ラボ<br>シミュレーター</div>
         <div class="app-subtitle">法律のルールを動かして「見える化」しよう</div>
         <div id="user-status-card" class="status-card">
