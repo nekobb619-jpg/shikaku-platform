@@ -7,7 +7,6 @@
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; background: #1a1a20; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
-        
         .view-section { display: none; width: 100%; height: 100%; flex-direction: column; }
         .view-section.active { display: flex; }
 
@@ -36,6 +35,7 @@
         .category-section-title { font-size: 1.1rem; color: #ffbc42; border-bottom: 1px solid #4f5d75; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; }
         .problem-list { display: flex; flex-direction: column; gap: 10px; }
         .problem-item-btn { padding: 12px; background: #2d3142; border: 1px solid #4f5d75; border-radius: 8px; color: white; text-align: left; cursor: pointer; }
+        .problem-item-btn:active { background: #3d3d4d; }
         .problem-item-btn span { font-size: 0.75rem; color: #4ecdc4; font-weight: bold; }
         .dict-item { background: #242430; padding: 15px; border-left: 4px solid #ffbc42; border-radius: 8px; display: flex; gap: 15px; align-items: flex-start; }
         .dict-icon { font-size: 2.5rem; background: #2d3142; padding: 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center;}
@@ -44,47 +44,47 @@
         .dict-catch { font-size: 0.75rem; color: #4ecdc4; background: rgba(78, 205, 196, 0.1); padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; font-weight: bold; }
         .dict-desc { font-size: 0.85rem; color: #e0e0e0; line-height: 1.5; }
 
-        /* ① 最上部：問題エリア */
-        #top-area { background: #242430; padding: 12px 15px; border-bottom: 2px solid #333344; z-index: 100; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; max-height: 38vh; overflow-y: auto; }
+        /* ① 最上部：問題エリア（高さを最大30%にガチッと制限！） */
+        #top-area { background: #242430; padding: 10px 15px; border-bottom: 2px solid #333344; z-index: 100; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; max-height: 30vh; overflow-y: auto; }
         #stage-info { display: flex; justify-content: space-between; align-items: center; }
-        h2 { margin: 0; font-size: 1rem; color: #ffbc42; }
-        h3 { margin: 0; font-size: 0.7rem; color: #4ecdc4; background: #2d3142; padding: 3px 6px; border-radius: 4px; display: inline-block; }
-        #question-box { font-size: 0.85rem; line-height: 1.4; color: #e0e0e0; background: #15151f; padding: 8px; border-left: 4px solid #ef8354; border-radius: 4px;}
+        h2 { margin: 0; font-size: 0.95rem; color: #ffbc42; }
+        h3 { margin: 0; font-size: 0.65rem; color: #4ecdc4; background: #2d3142; padding: 2px 5px; border-radius: 4px; display: inline-block; }
+        #question-box { font-size: 0.8rem; line-height: 1.35; color: #e0e0e0; background: #15151f; padding: 6px; border-left: 4px solid #ef8354; border-radius: 4px;}
         .term-highlight { color: #ffbc42; border-bottom: 1px dotted #ffbc42; cursor: pointer; font-weight: bold; background: rgba(255,188,66,0.1); padding: 0 4px; border-radius: 3px; }
-        #glossary-container { background: #2d3142; border-radius: 8px; padding: 12px; display: none; align-items: flex-start; gap: 12px; border: 1px solid #ffbc42; margin-top: 5px;}
-        #glossary-inline-icon { font-size: 2rem; background: #1a1a20; padding: 8px; border-radius: 8px; }
-        #glossary-inline-title { font-size: 0.9rem; color: #ffbc42; font-weight: bold; margin-bottom: 2px; }
-        #glossary-inline-catch { font-size: 0.7rem; color: #4ecdc4; margin-bottom: 6px; font-weight: bold; }
-        #glossary-inline-desc { font-size: 0.75rem; color: #e0e0e0; line-height: 1.4; }
-        #live-commentary-board { background: rgba(78, 205, 196, 0.1); border: 1px dashed #4ecdc4; border-radius: 6px; padding: 8px; text-align: center; }
-        #commentary-text { font-size: 0.8rem; font-weight: bold; color: #4ecdc4; line-height: 1.3;}
+        #glossary-container { background: #2d3142; border-radius: 8px; padding: 10px; display: none; align-items: flex-start; gap: 10px; border: 1px solid #ffbc42; margin-top: 3px;}
+        #glossary-inline-icon { font-size: 1.8rem; background: #1a1a20; padding: 6px; border-radius: 8px; }
+        #glossary-inline-title { font-size: 0.85rem; color: #ffbc42; font-weight: bold; margin-bottom: 2px; }
+        #glossary-inline-catch { font-size: 0.65rem; color: #4ecdc4; margin-bottom: 4px; font-weight: bold; }
+        #glossary-inline-desc { font-size: 0.7rem; color: #e0e0e0; line-height: 1.35; }
+        #live-commentary-board { background: rgba(78, 205, 196, 0.08); border: 1px dashed #4ecdc4; border-radius: 6px; padding: 6px; text-align: center; }
+        #commentary-text { font-size: 0.75rem; font-weight: bold; color: #4ecdc4; line-height: 1.2;}
 
-        /* ② 中央：実験キャンバス（下部に固定バーの余白をマージンで確保：margin-bottom） */
-        #canvas-outer { position: relative; flex: 1; width: 100%; background: #111116; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; margin-bottom: calc(8vh + 14vh); }
-        #canvas-container { position: relative; width: 100%; min-height: 340px; height: 100%; }
+        /* ② 中央：実験キャンバス（高さを最小420px保証！これで絶対に潰れません） */
+        #canvas-outer { position: relative; flex: 1; width: 100%; background: #111116; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; margin-bottom: calc(6vh + 10vh); }
+        #canvas-container { position: relative; width: 100%; min-height: 420px; height: 100%; }
         
-        #balance-scale { position: absolute; top: 10%; left: 50%; transform: translateX(-50%); width: 60%; max-width: 280px; height: 80px; border: 3px solid #4f5d75; border-top: none; border-radius: 0 0 20px 20px; display: flex; justify-content: space-between; align-items: flex-end; padding: 8px; }
-        .scale-side { width: 38%; height: 25px; background: #3d3d4d; border-radius: 4px; text-align: center; font-size: 0.7rem; line-height: 25px; font-weight: bold; transition: transform 0.4s ease; border: 1px solid #4f5d75; }
+        #balance-scale { position: absolute; top: 12%; left: 50%; transform: translateX(-50%); width: 65%; max-width: 280px; height: 85px; border: 3px solid #4f5d75; border-top: none; border-radius: 0 0 20px 20px; display: flex; justify-content: space-between; align-items: flex-end; padding: 8px; }
+        .scale-side { width: 38%; height: 25px; background: #3d3d4d; border-radius: 4px; text-align: center; font-size: 0.65rem; line-height: 25px; font-weight: bold; transition: transform 0.4s ease; border: 1px solid #4f5d75; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
         #movable-land { position: absolute; width: 55px; height: 55px; background: radial-gradient(circle, #ffbc42, #ef8354); border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 15px rgba(255, 188, 66, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 1.3rem; z-index: 50; transition: left 0.5s ease, top 0.5s ease; pointer-events: none; transform: translate(-50%, -50%); }
         #land-sub { font-size: 0.45rem; color: #fff; margin-top: -2px; font-weight: bold; }
-        .fixed-character { position: absolute; width: 100px; height: 55px; background: #252530; border: 2px solid #4f5d75; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; z-index: 10; transform: translate(-50%, -50%); }
-        .char-title { font-size: 0.6rem; color: #aeaeae; margin-bottom: 2px; }
-        .keyword-slot { position: absolute; width: 150px; height: 50px; border: 2px dashed #4ecdc4; border-radius: 8px; background: rgba(78, 205, 196, 0.05); display: flex; align-items: center; justify-content: center; color: #4ecdc4; font-size: 0.75rem; font-weight: bold; transform: translate(-50%, -50%); }
+        .fixed-character { position: absolute; width: 100px; height: 50px; background: #252530; border: 2px solid #4f5d75; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; z-index: 10; transform: translate(-50%, -50%); text-align: center; padding: 2px; }
+        .char-title { font-size: 0.55rem; color: #aeaeae; margin-bottom: 2px; }
+        .keyword-slot { position: absolute; width: 140px; height: 45px; border: 2px dashed #4ecdc4; border-radius: 8px; background: rgba(78, 205, 196, 0.05); display: flex; align-items: center; justify-content: center; color: #4ecdc4; font-size: 0.7rem; font-weight: bold; transform: translate(-50%, -50%); }
 
-        #sorting-zone { display: none; width: 100%; height: 100%; min-height: 320px; padding: 15px; justify-content: space-around; align-items: center; }
-        .sort-box { width: 45%; height: 90%; border: 3px dashed #4f5d75; border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 10px; transition: 0.3s; background: rgba(255,255,255,0.02); gap: 10px; }
-        .sort-box-title { font-size: 0.85rem; font-weight: bold; color: #aeaeae; text-align: center; pointer-events: none; }
+        #sorting-zone { display: none; width: 100%; height: 100%; min-height: 420px; padding: 15px; justify-content: space-around; align-items: center; }
+        .sort-box { width: 46%; height: 85%; border: 3px dashed #4f5d75; border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 10px; transition: 0.3s; background: rgba(255,255,255,0.02); gap: 10px; }
+        .sort-box-title { font-size: 0.8rem; font-weight: bold; color: #aeaeae; text-align: center; pointer-events: none; }
         .sort-box.correct-flash { border-color: #4ecdc4; background: rgba(78,205,196,0.1); }
         .sort-box.correct-flash .sort-box-title { color: #4ecdc4; }
         
-        #flow-zone { display: none; width: 100%; height: 100%; min-height: 320px; }
-        .flow-gate { position: absolute; width: 120px; height: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; text-align: center; transform: translate(-50%, -50%); z-index: 10;}
+        #flow-zone { display: none; width: 100%; height: 100%; min-height: 420px; }
+        .flow-gate { position: absolute; width: 120px; height: 50px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; text-align: center; transform: translate(-50%, -50%); z-index: 10; line-height: 1.2;}
         .gate-check { background: #2a2d3d; border: 2px solid #ffbc42; color: #ffbc42; }
         .gate-need { background: rgba(217, 78, 52, 0.15); border: 2px dashed #ef8354; color: #ef8354; }
         .gate-free { background: rgba(78, 205, 196, 0.15); border: 2px dashed #4ecdc4; color: #4ecdc4; }
-        .flow-arrow { position: absolute; color: #4f5d75; font-size: 1rem; font-weight: bold; transform: translate(-50%, -50%); pointer-events: none; }
+        .flow-arrow { position: absolute; color: #4f5d75; font-size: 0.9rem; font-weight: bold; transform: translate(-50%, -50%); pointer-events: none; }
 
-        #slider-zone { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 320px; padding: 10px; z-index: 20; }
+        #slider-zone { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 420px; padding: 10px; z-index: 20; }
         #blueprint-area { position: relative; width: 140px; height: 140px; border: 2px dashed #4f5d75; display: flex; align-items: flex-end; justify-content: center; background: rgba(79, 93, 117, 0.1); border-radius: 4px; }
         #building-box { width: 50px; height: 50px; background: rgba(78, 205, 196, 0.8); border: 2px solid #4ecdc4; border-bottom: none; transition: background 0.2s; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 0.75rem; }
         .building-over { background: rgba(239, 131, 84, 0.8) !important; border-color: #ef8354 !important; }
@@ -94,28 +94,28 @@
         #building-slider { width: 100%; margin-top: 8px; accent-color: #4ecdc4; }
         #slider-value-disp { font-size: 1rem; font-weight: bold; color: #ffbc42; }
 
-        /* 🌟 4肢択一対応ポップアップ（固定バーの上に浮遊追従） */
-        #answer-selection-zone { display: none; position: fixed; bottom: calc(8vh + 10px); left: 50%; transform: translateX(-50%); width: 94%; max-width: 420px; background: rgba(21, 21, 31, 0.98); border: 2px solid #4ecdc4; border-radius: 12px; padding: 12px; flex-direction: column; align-items: center; justify-content: center; z-index: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.7); max-height: 45vh; overflow-y: auto; }
+        /* 🌟 4肢択一対応ポップアップ */
+        #answer-selection-zone { display: none; position: fixed; bottom: calc(6vh + 10px); left: 50%; transform: translateX(-50%); width: 94%; max-width: 420px; background: rgba(21, 21, 31, 0.98); border: 2px solid #4ecdc4; border-radius: 12px; padding: 12px; flex-direction: column; align-items: center; justify-content: center; z-index: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.7); max-height: 50vh; overflow-y: auto; }
         #answer-btn-wrapper { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 8px; }
-        .choice-btn { width: 100%; padding: 10px 15px; background: #2d3142; border: 1px solid #4f5d75; border-radius: 8px; color: #fff; font-size: 0.8rem; text-align: left; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.3; }
+        .choice-btn { width: 100%; padding: 10px 12px; background: #2d3142; border: 1px solid #4f5d75; border-radius: 8px; color: #fff; font-size: 0.75rem; text-align: left; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1.35; }
         .choice-btn:active { background: #3d3d4d; }
 
-        /* ③ 下部トレイ（画面最下部から8vh浮かせた位置に固定：bottom: 8vh） */
-        #tray-outer { position: fixed; bottom: 8vh; left: 0; background: #1c1c24; height: 14vh; width: 100%; overflow-x: auto; white-space: nowrap; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; border-top: 1px solid #2d2d3d; z-index: 450; }
+        /* ③ 下部トレイ（10vhにコンパクト化） */
+        #tray-outer { position: fixed; bottom: 6vh; left: 0; background: #1c1c24; height: 10vh; width: 100%; overflow-x: auto; white-space: nowrap; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; border-top: 1px solid #2d2d3d; z-index: 450; }
         #tray-container { display: inline-flex; align-items: center; height: 100%; padding: 0 10px; gap: 12px; }
-        .puzzle-piece { width: 140px; height: 48px; background: linear-gradient(135deg, #4f5d75, #2d3142); border: 2px solid #ef8354; border-radius: 10px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; text-align: center; white-space: normal; line-height: 1.25; z-index: 100; user-select: none; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .puzzle-piece { width: 140px; height: 44px; background: linear-gradient(135deg, #4f5d75, #2d3142); border: 2px solid #ef8354; border-radius: 10px; cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; text-align: center; white-space: normal; line-height: 1.25; z-index: 100; user-select: none; flex-shrink: 0; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
         
-        /* ④ 🌟 核心の修正：最下部固定コントロールバー（position: fixed にして画面最底面に強制固定） */
-        #control-bar { position: fixed; bottom: 0; left: 0; height: 8vh; width: 100%; display: flex; justify-content: center; align-items: center; padding: 5px; background: #15151f; border-top: 2px solid #2d3142; z-index: 500; }
-        .action-btn { padding: 10px 40px; background: #ef8354; border: none; border-radius: 25px; color: #fff; font-weight: bold; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; cursor: pointer;}
+        /* ④ 最下部固定コントロールバー（6vhに引き締め） */
+        #control-bar { position: fixed; bottom: 0; left: 0; height: 6vh; width: 100%; display: flex; justify-content: center; align-items: center; padding: 2px; background: #15151f; border-top: 2px solid #2d3142; z-index: 500; }
+        .action-btn { padding: 6px 40px; background: #ef8354; border: none; border-radius: 25px; color: #fff; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); white-space: nowrap; cursor: pointer;}
         
         /* モーダル */
         #result-modal, #levelup-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
         #levelup-modal { z-index: 2000; }
         .modal-content { background: #242430; border: 2px solid #4ecdc4; border-radius: 12px; padding: 20px; max-width: 400px; width: 100%; text-align: center; }
         .modal-content.fail { border-color: #ef8354; }
-        .modal-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; }
-        .modal-body { font-size: 0.85rem; line-height: 1.5; color: #e0e0e0; text-align: left; margin-bottom: 20px; }
+        .modal-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        .modal-body { font-size: 0.8rem; line-height: 1.45; color: #e0e0e0; text-align: left; margin-bottom: 20px; }
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
     </style>
 </head>
