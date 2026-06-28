@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>資格挑戦 PLATFORM - 玄関口</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); color: #f3f4f6; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100vw; overflow: hidden; }
+        .menu-title { font-size: 26px; margin-bottom: 30px; font-weight: bold; text-shadow: 0 0 10px rgba(74,222,128,0.3); text-align: center; line-height: 1.4; }
+        .shikaku-link { display: block; text-align: center; text-decoration: none; width: 85%; max-width: 340px; padding: 18px; margin: 12px 0; border-radius: 12px; font-size: 18px; font-weight: bold; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        .shikaku-link:active { transform: scale(0.98); }
+        #link-takken { background: linear-gradient(135deg, #df7a25 0%, #b45309 100%); }
+        /* ★別AIで開発中のver.2用：初代宅建のオレンジを踏襲しつつ、少し赤みを強めて判別しやすくしたブラッドオレンジグラデーション */
+        #link-takken-c { background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%); border: 2px dashed #f97316; }
+        #link-aroma { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
+        #link-ai { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        #link-english { background: linear-gradient(135deg, #a855f7 0%, #6b21a8 100%); }
+    </style>
+</head>
+<body>
+
+    <h1 class="menu-title">🏛️ 大人の資格統合<br>PLATFORM</h1>
+    
+    <a id="link-takken" class="shikaku-link" href="takken/index.html">🏠 宅地建物取引士</a>
+    <a id="link-takken-c" class="shikaku-link" href="takken-c/index.html">🏠 宅建(ver.2)</a>
+    <a id="link-aroma" class="shikaku-link" href="aroma/index.html">🌿 アロマテラピーアドバイザー</a>
+    <a id="link-ai" class="shikaku-link" href="ai_passport/index.html">🤖 生成AIパスポート</a>
+    <a id="link-english" class="shikaku-link" href="english/index.html">🗣️ 日常・ビジネス英会話</a>
+
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>専用特訓ラボ</title>
+    <style>
+        :root {
+            --panel-bg: #1e1e24;
+            --accent-color: #4ade80; /* 各資格ごとに色を変える場合はここを自由に変更 */
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { font-family: sans-serif; background-color: #121214; color: #f3f4f6; overflow: hidden; height: 100vh; }
+        .view { display: none; height: 100vh; flex-direction: column; }
+        .view.active { display: flex; }
+        
+        /* 単元選択画面 */
+        #menu-view { padding: 20px; overflow-y: auto; }
+        .exit-btn { padding: 10px; background: #3f3f46; border: none; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 20px; }
+        .stage-item { background: var(--panel-bg); padding: 15px; border-radius: 8px; margin-bottom: 12px; border-left: 5px solid var(--accent-color); display: flex; justify-content: space-between; align-items: center; }
+        
+        /* メインプレイ画面 (2画面セパレート) */
+        #top-panel { height: 28vh; background: #1a1a1e; border-bottom: 2px solid #2d2d34; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+        #main-board { height: 44vh; background: #131316; padding: 10px; display: flex; justify-content: center; align-items: center; position: relative; }
+        #bottom-tray { height: 28vh; background: #222227; position: relative; }
+        
+        .tray-scroll { display: flex; gap: 10px; padding: 15px; overflow-x: auto; height: calc(100% - 50px); align-items: center; }
+        .piece { padding: 10px 15px; background: #3b82f6; border-radius: 20px; color: white; font-size: 13px; white-space: nowrap; cursor: pointer; }
+        
+        #control-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 50px; background: #18181b; display: flex; justify-content: center; align-items: center; }
+        .action-btn { width: 90%; height: 38px; background: var(--accent-color); border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        
+        /* 4択解答ポップアップ */
+        #answer-zone { position: fixed; top: 30vh; left: 5%; width: 90%; background: #18181b; border: 2px solid var(--accent-color); border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; z-index: 200; }
+        .choice-btn { width: 100%; padding: 12px; background: #27272a; border: 1px solid #3f3f46; color: white; border-radius: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-view" class="view active">
+        <a class="exit-btn" href="../index.html">◀ ポータルへ戻る</a>
+        <h2 style="margin-bottom: 15px;">特訓単元一覧</h2>
+        <div id="stage-list"></div>
+    </div>
+
+    <div id="lab-view" class="view">
+        <div id="top-panel">
+            <button class="exit-btn" style="margin-bottom:0; padding:4px 8px;" onclick="location.reload()">◀ 一覧に戻る</button>
+            <div id="problem-statement" style="font-size:14px; font-weight:bold;"></div>
+            <div id="commentary" style="color:#facc15; font-size:13px; min-height:38px;">ピースを選んで実験しよう！</div>
+        </div>
+        
+        <div id="main-board"></div>
+        
+        <div id="bottom-tray">
+            <div id="piece-tray" class="tray-scroll"></div>
+            <div id="control-bar">
+                <button class="action-btn" onclick="openQuiz()">実験終了、問題に答える！</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="answer-zone">
+        <h3 style="color:var(--accent-color); margin-bottom:5px;">【最終ジャッジ】</h3>
+        <div id="choices-box" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
