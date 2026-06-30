@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生成AIパスポート試験 対策問題集</title>
+<style>
+  :root{
+    --bg:#0f1419;
+    --panel:#1a2230;
+    --panel2:#212c3d;
+    --accent:#5eead4;
+    --accent2:#818cf8;
+    --text:#e6edf3;
+    --sub:#8b98a9;
+    --good:#4ade80;
+    --bad:#f87171;
+    --border:#2d3a4f;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    background:linear-gradient(160deg,#0f1419,#141b27);
+    color:var(--text);
+    min-height:100vh;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px;}
+  header{
+    text-align:center;
+    padding:18px 0 8px;
+  }
+  header h1{
+    font-size:1.3rem;
+    margin:0 0 4px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    font-weight:800;
+  }
+  header p{color:var(--sub);font-size:0.8rem;margin:0;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* ホーム画面 */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .stat-box{
+    background:var(--panel2);
+    border-radius:12px;
+    padding:12px 8px;
+    text-align:center;
+  }
+  .stat-box .num{font-size:1.4rem;font-weight:800;color:var(--accent);}
+  .stat-box .label{font-size:0.7rem;color:var(--sub);margin-top:2px;}
+
+  .cat-list{display:flex;flex-direction:column;gap:10px;}
+  .cat-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:0.15s;
+  }
+  .cat-item:active{transform:scale(0.98);}
+  .cat-item .ci-left{display:flex;align-items:center;gap:10px;}
+  .cat-item .ci-icon{font-size:1.4rem;}
+  .cat-item .ci-name{font-weight:700;font-size:0.95rem;}
+  .cat-item .ci-sub{font-size:0.72rem;color:var(--sub);margin-top:2px;}
+  .cat-item .ci-progress{font-size:0.72rem;color:var(--accent);font-weight:700;}
+
+  .mode-row{display:flex;gap:10px;margin-top:14px;}
+  .btn{
+    flex:1;
+    padding:13px;
+    border-radius:12px;
+    border:none;
+    font-weight:700;
+    font-size:0.85rem;
+    cursor:pointer;
+  }
+  .btn-primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#0f1419;}
+  .btn-secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+  .btn-ghost{background:transparent;color:var(--sub);border:1px solid var(--border);}
+  .btn:active{transform:scale(0.97);}
+
+  /* クイズ画面 */
+  .quiz-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    font-size:0.78rem;
+    color:var(--sub);
+  }
+  .progress-bar{
+    height:6px;
+    background:var(--panel2);
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:18px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width 0.3s;
+  }
+  .q-cat-badge{
+    display:inline-block;
+    font-size:0.68rem;
+    color:var(--accent2);
+    background:rgba(129,140,248,0.12);
+    border:1px solid rgba(129,140,248,0.3);
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .q-text{
+    font-size:1.02rem;
+    line-height:1.6;
+    margin-bottom:18px;
+    font-weight:600;
+  }
+  .choices{display:flex;flex-direction:column;gap:10px;}
+  .choice{
+    background:var(--panel2);
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    padding:13px 14px;
+    font-size:0.88rem;
+    line-height:1.5;
+    cursor:pointer;
+    display:flex;
+    gap:10px;
+  }
+  .choice:active{transform:scale(0.99);}
+  .choice .c-mark{
+    flex-shrink:0;
+    width:22px;height:22px;
+    border-radius:50%;
+    border:1.5px solid var(--sub);
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.7rem;
+    font-weight:700;
+    color:var(--sub);
+  }
+  .choice.correct{border-color:var(--good);background:rgba(74,222,128,0.1);}
+  .choice.correct .c-mark{border-color:var(--good);background:var(--good);color:#0f1419;}
+  .choice.wrong{border-color:var(--bad);background:rgba(248,113,113,0.1);}
+  .choice.wrong .c-mark{border-color:var(--bad);background:var(--bad);color:#0f1419;}
+  .choice.disabled{cursor:default;}
+
+  .explain-box{
+    margin-top:16px;
+    background:var(--panel2);
+    border-left:3px solid var(--accent);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:0.84rem;
+    line-height:1.65;
+    color:var(--text);
+    display:none;
+  }
+  .explain-box.show{display:block;}
+  .explain-box .e-label{font-weight:700;color:var(--accent);font-size:0.78rem;margin-bottom:6px;}
+
+  .nav-row{display:flex;gap:10px;margin-top:18px;}
+
+  /* 結果画面 */
+  .result-circle{
+    width:140px;height:140px;
+    margin:10px auto 18px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    flex-direction:column;
+    background:var(--panel2);
+    border:6px solid var(--accent);
+  }
+  .result-circle .rc-pct{font-size:2rem;font-weight:800;color:var(--accent);}
+  .result-circle .rc-sub{font-size:0.7rem;color:var(--sub);}
+  .review-item{
+    background:var(--panel2);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    font-size:0.8rem;
+  }
+  .review-item .ri-q{font-weight:700;margin-bottom:4px;}
+  .review-item .ri-ans{color:var(--sub);}
+  .review-item.wrong{border-left:3px solid var(--bad);}
+  .review-item.right{border-left:3px solid var(--good);}
+
+  .home-link{
+    display:inline-block;
+    margin:14px 0 4px;
+    color:var(--sub);
+    font-size:0.78rem;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎓 生成AIパスポート 対策問題集</h1>
+    <p>分野別に出題 / 解説付き / 学習履歴を記録</p>
+  </header>
+
+  <!-- ホーム画面 -->
+  <div class="screen active" id="screen-home">
+    <div class="card">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="num" id="stat-total">0</div><div class="label">総回答数</div></div>
+        <div class="stat-box"><div class="num" id="stat-rate">0%</div><div class="label">正答率</div></div>
+        <div class="stat-box"><div class="num" id="stat-streak">0</div><div class="label">学習日数</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cat-list" id="cat-list"></div>
+      <div class="mode-row">
+        <button class="btn btn-primary" id="btn-start-all">全分野ミックス (25問)</button>
+      </div>
+      <div class="mode-row">
+        <button class="btn btn-secondary" id="btn-wrong-review">苦手問題を復習</button>
+        <button class="btn btn-ghost" id="btn-reset">記録をリセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- クイズ画面 -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <span id="quiz-position">問題 1 / 10</span>
+      <span id="quiz-score">正解 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+    <div class="card">
+      <span class="q-cat-badge" id="q-cat-badge">分野</span>
+      <div class="q-text" id="q-text">問題文</div>
+      <div class="choices" id="choices"></div>
+      <div class="explain-box" id="explain-box">
+        <div class="e-label">💡 解説</div>
+        <div id="explain-text"></div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="btn-quit">中断してホームへ</button>
+      <button class="btn btn-primary" id="btn-next" style="display:none;">次の問題へ</button>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div class="screen" id="screen-result">
+    <div class="card" style="text-align:center;">
+      <div class="result-circle">
+        <div class="rc-pct" id="result-pct">0%</div>
+        <div class="rc-sub" id="result-frac">0/0問</div>
+      </div>
+      <div id="result-msg" style="font-size:0.9rem;color:var(--sub);margin-bottom:6px;"></div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:10px;font-size:0.9rem;">📝 振り返り</div>
+      <div id="review-list"></div>
+    </div>
+    <div class="mode-row">
+      <button class="btn btn-secondary" id="btn-result-home">ホームへ戻る</button>
+      <button class="btn btn-primary" id="btn-retry">もう一度挑戦</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================== 問題データ ===================== */
+const CATEGORIES = [
+  {id:"basics", name:"AIの基礎知識", icon:"🧠", sub:"AI/機械学習/生成AIの仕組み"},
+  {id:"prompt", name:"プロンプトエンジニアリング", icon:"✍️", sub:"効果的な指示の出し方"},
+  {id:"usage", name:"業務活用・リテラシー", icon:"💼", sub:"ビジネスでの利活用"},
+  {id:"risk", name:"法律・倫理・リスク", icon:"⚖️", sub:"著作権・個人情報・ハルシネーション"},
+];
+
+const QUESTIONS = [
+  // ---------------- AIの基礎知識 ----------------
+  {cat:"basics", q:"生成AI(Generative AI)の説明として最も適切なものはどれか。",
+    choices:[
+      "既存データを分類・予測するだけのAI",
+      "学習したデータのパターンをもとに、文章・画像・音声などの新しいコンテンツを生成できるAI",
+      "人間の指示を一切必要とせず自律的に動作するロボット全般",
+      "インターネット検索結果をそのまま表示するAI"],
+    answer:1,
+    explain:"生成AIは大量のデータから学習したパターンに基づき、テキストや画像など新しいコンテンツを生成する技術です。検索や単純な分類とは異なり、新規の出力を「創出」する点が特徴です。"},
+  {cat:"basics", q:"大規模言語モデル(LLM)が文章を生成する基本的な仕組みとして正しいのはどれか。",
+    choices:[
+      "あらかじめ用意された回答文をデータベースから検索して返している",
+      "直前までの文脈をもとに、次に来る確率が高い単語(トークン)を逐次予測して文章を組み立てている",
+      "人間のオペレーターがリアルタイムで回答を作成している",
+      "入力文をそのまま翻訳して出力している"],
+    answer:1,
+    explain:"LLMは「次のトークンを予測する」という確率モデルに基づいて動作します。文脈に応じて最も自然と判断される単語を逐次選び、文章として組み立てていきます。"},
+  {cat:"basics", q:"「ハルシネーション(Hallucination)」とは何を指す用語か。",
+    choices:[
+      "AIが学習データの著作権を侵害すること",
+      "AIが事実に基づかない、もっともらしい誤った情報を生成してしまう現象",
+      "AIの応答速度が遅くなる現象",
+      "AIが個人情報を漏洩させること"],
+    answer:1,
+    explain:"ハルシネーションは生成AI特有の課題で、事実とは異なる内容を確信ありげに出力してしまう現象です。生成された情報は必ず事実確認(ファクトチェック)することが推奨されます。"},
+  {cat:"basics", q:"ディープラーニング(深層学習)の特徴として正しいものはどれか。",
+    choices:[
+      "人間が特徴量を逐一手動で設計する必要がある",
+      "多層構造のニューラルネットワークを用い、データから特徴量を自動的に学習する",
+      "必ず教師なし学習でなければならない",
+      "画像データにしか応用できない"],
+    answer:1,
+    explain:"ディープラーニングは多層のニューラルネットワークを使い、人手による特徴量設計なしにデータから自動的にパターンや特徴を学習できる点が大きな特徴です。"},
+  {cat:"basics", q:"画像生成AIにおける「拡散モデル(Diffusion Model)」のおおまかな仕組みとして正しいのはどれか。",
+    choices:[
+      "ランダムノイズから段階的にノイズを除去していくことで画像を生成する",
+      "既存の画像を単純にコピー&ペーストして合成する",
+      "ユーザーが描いた線画をそのままベクター化する",
+      "文章を直接ピクセルデータに変換するルールベースの処理"],
+    answer:0,
+    explain:"拡散モデルは、ランダムなノイズ画像から少しずつノイズを取り除く(逆拡散)過程を学習し、最終的にプロンプトに沿った画像を生成する手法です。"},
+  {cat:"basics", q:"マルチモーダルAIとはどのようなAIを指すか。",
+    choices:[
+      "1つの言語にのみ対応したAI",
+      "テキスト・画像・音声など複数の種類のデータを統合的に扱えるAI",
+      "複数のサーバーで分散処理されるAI",
+      "有料プランのみで利用できるAI"],
+    answer:1,
+    explain:"マルチモーダルAIは、テキスト・画像・音声・動画など異なる種類(モダリティ)の情報を組み合わせて理解・生成できるAIを指します。"},
+  {cat:"basics", q:"ファインチューニングの説明として最も適切なものはどれか。",
+    choices:[
+      "学習済みモデルに対し、特定の目的やドメインのデータで追加学習を行い性能を調整すること",
+      "プロンプトの文字数を短く調整すること",
+      "AIサービスの利用料金プランを変更すること",
+      "出力結果をユーザーが手作業で修正すること"],
+    answer:0,
+    explain:"ファインチューニングは、既に学習済みの汎用モデルに対し特定タスクやドメインのデータを追加で学習させ、その分野での精度や適合性を高める手法です。"},
+  {cat:"basics", q:"「トークン」とは生成AIの文脈でどのようなものを指すか。",
+    choices:[
+      "AIサービスにログインするための認証コード",
+      "文章をAIが処理する際の最小単位となる、単語やその一部の断片",
+      "AIモデルの利用回数を数えるポイントのこと",
+      "画像生成AIが出力する画素の単位"],
+    answer:1,
+    explain:"トークンは、LLMが文章を処理・生成する際に扱う最小単位で、単語全体や単語の一部、記号などに分割されます。料金や処理量もトークン数に基づいて計算されることが多くあります。"},
+  {cat:"basics", q:"生成AIの学習における「事前学習(プレトレーニング)」の説明として適切なものはどれか。",
+    choices:[
+      "ユーザーが入力したプロンプトのみを使ってその場で行う学習",
+      "インターネット上の大量のテキストなど膨大なデータを用いて、汎用的な言語パターンをあらかじめ学習させる工程",
+      "AIモデルを利用する前にユーザーが行う事前設定作業のこと",
+      "学習済みモデルの重みをすべて削除する作業"],
+    answer:1,
+    explain:"事前学習は、大量かつ多様なデータを用いてモデルに言語の構造や知識の汎用的なパターンを学習させる工程で、その後の用途特化のファインチューニングの土台となります。"},
+  {cat:"basics", q:"AIにおける「パラメータ」の説明として最も適切なものはどれか。",
+    choices:[
+      "ユーザーが画面上で設定する表示言語の項目",
+      "モデルが学習を通じて獲得する、入力から出力を導く際の重み(数値)のこと",
+      "AIサービスの月額利用料金のこと",
+      "AIが扱える画像の最大サイズのこと"],
+    answer:1,
+    explain:"パラメータは、ニューラルネットワーク内でデータの重み付けを担う数値で、学習を通じて調整されます。一般にパラメータ数が多いほどモデルの表現力は高まりやすい傾向があります。"},
+  {cat:"basics", q:"RAG(Retrieval-Augmented Generation:検索拡張生成)の仕組みとして正しいのはどれか。",
+    choices:[
+      "外部の文書やデータベースから関連情報を検索し、それをもとに生成AIが回答を作成する手法",
+      "AIモデルのパラメータを再学習なしに直接書き換える手法",
+      "複数の生成AIモデルを並列に動かして多数決を取る手法",
+      "ユーザーの個人情報を自動収集して回答に利用する手法"],
+    answer:0,
+    explain:"RAGは、外部の文書・データベースなどから関連性の高い情報を検索し、それをプロンプトに組み込んで生成AIに回答させる手法で、最新情報や社内情報への対応、ハルシネーション低減に有効です。"},
+  {cat:"basics", q:"生成AIの「学習データのカットオフ(知識の範囲)」について正しい説明はどれか。",
+    choices:[
+      "モデルは学習データに含まれていない最新の出来事についても常に正確に把握している",
+      "モデルの知識は学習時点までのデータに基づくため、それ以降の出来事は基本的に把握できない",
+      "カットオフは画像生成AIにのみ存在し、文章生成AIには存在しない",
+      "カットオフという概念は生成AIには存在しない"],
+    answer:1,
+    explain:"多くの生成AIは特定時点までのデータで学習されており、それ以降に起きた出来事については基本的に把握していません。最新情報が必要な場合はWeb検索などの補助機能が必要です。"},
+  {cat:"basics", q:"「自然言語処理(NLP)」とはどのような技術領域を指すか。",
+    choices:[
+      "コンピュータが人間の話し言葉や書き言葉を解析・生成する技術領域",
+      "プログラミング言語をコンパイルする技術領域",
+      "画像データのみを扱う技術領域",
+      "ネットワーク通信プロトコルを設計する技術領域"],
+    answer:0,
+    explain:"自然言語処理(NLP)は、人間が日常的に使う言語(自然言語)をコンピュータが解析・理解・生成するための技術分野で、生成AIの中核技術の一つです。"},
+  {cat:"basics", q:"AIの「教師あり学習」の説明として正しいものはどれか。",
+    choices:[
+      "正解ラベル(入力に対する正しい出力)が付与されたデータを使ってモデルを学習させる手法",
+      "人間の教師が常にリアルタイムでAIの出力を監督する手法",
+      "ラベルのない大量のデータからパターンのみを抽出する手法",
+      "AIが自分自身を相手に試行錯誤しながら学習する手法"],
+    answer:0,
+    explain:"教師あり学習は、入力とそれに対応する正解(ラベル)のペアからなるデータを用いて、入力から正しい出力を予測できるようにモデルを学習させる手法です。"},
+  {cat:"basics", q:"「強化学習」の基本的な仕組みとして正しいものはどれか。",
+    choices:[
+      "エージェントが環境とのやり取りの中で得られる報酬を最大化するように行動を学習する手法",
+      "あらかじめ用意された正解データのみをひたすら暗記する手法",
+      "ラベルなしデータの類似度のみで分類を行う手法",
+      "人間が逐一すべての行動を指示する手法"],
+    answer:0,
+    explain:"強化学習は、エージェントが試行錯誤を通じて環境から得られる報酬(フィードバック)を最大化するように、最適な行動方針を学習していく手法です。"},
+  {cat:"basics", q:"生成AIの応答生成における「温度(temperature)」パラメータの役割として適切なものはどれか。",
+    choices:[
+      "サーバーの物理的な発熱量を調整する設定",
+      "出力の多様性やランダム性の度合いを調整するパラメータで、値が高いほど多様で意外性のある出力になりやすい",
+      "AIの応答速度を直接決定するパラメータ",
+      "入力できるプロンプトの文字数上限を決めるパラメータ"],
+    answer:1,
+    explain:"温度(temperature)は、次のトークンを選ぶ際の確率分布の鋭さを調整するパラメータです。値を高くするとより多様でランダム性の高い出力に、低くすると確実性の高い出力になりやすくなります。"},
+  {cat:"basics", q:"オープンソースのAIモデルと商用クローズドモデルの違いに関する説明として適切なものはどれか。",
+    choices:[
+      "オープンソースモデルはモデルの重みやコードが公開され、誰でも利用・改変しやすい一方、クローズドモデルは提供企業の管理下でAPI等を通じて利用する形が一般的",
+      "オープンソースモデルは常に性能が劣るため業務利用に向かない",
+      "クローズドモデルは無料で誰でも改変できる",
+      "オープンソースとクローズドの違いは利用料金の有無のみである"],
+    answer:0,
+    explain:"オープンソースモデルはモデルの重みや構造が公開され自由に利用・改変しやすい一方、クローズドモデルは提供企業がAPIなどを通じて管理された形で提供することが一般的です。"},
+  {cat:"basics", q:"AIエージェントの説明として適切なものはどれか。",
+    choices:[
+      "一問一答で応答を返すだけの単純なチャット機能のこと",
+      "与えられた目標に対し、自律的に計画を立て、複数のツールやステップを組み合わせてタスクを遂行するAIシステム",
+      "AIサービスを販売する営業担当者のこと",
+      "画像認識のみを行う専用ハードウェアのこと"],
+    answer:1,
+    explain:"AIエージェントは、目標達成のために自律的に計画立案・ツール利用・複数ステップの実行を行うAIシステムを指し、単純な一問一答の対話とは異なる概念です。"},
+
+  // ---------------- プロンプトエンジニアリング ----------------
+  {cat:"prompt", q:"プロンプトエンジニアリングの目的として最も適切なものはどれか。",
+    choices:[
+      "AIモデル自体のパラメータを書き換えること",
+      "AIへの指示文(プロンプト)を工夫し、より意図に沿った高品質な出力を引き出すこと",
+      "AIの学習データを直接編集すること",
+      "サーバーの応答速度を向上させること"],
+    answer:1,
+    explain:"プロンプトエンジニアリングはモデル自体を変更せず、入力する指示文の構成・条件・例示を工夫することで、望む出力を得やすくする技術です。"},
+  {cat:"prompt", q:"プロンプトに「役割(ロール)」を与える手法(例:『あなたはプロの編集者です』)の効果として適切なのはどれか。",
+    choices:[
+      "AIの処理速度が必ず向上する",
+      "出力のトーンや専門性、視点をその役割に沿ったものに誘導しやすくなる",
+      "AIの利用料金が安くなる",
+      "ハルシネーションが完全になくなる"],
+    answer:1,
+    explain:"役割を指定することで、AIはその役割にふさわしい知識・語調・観点を踏まえた応答を生成しやすくなります。ただし誤情報が完全になくなるわけではありません。"},
+  {cat:"prompt", q:"「Few-shotプロンプティング」とはどのような手法か。",
+    choices:[
+      "プロンプトを一切与えずAIに自由生成させる手法",
+      "入力例と望ましい出力例をいくつか示すことで、AIに出力形式やパターンを理解させる手法",
+      "AIに質問を複数回連続で投げかけるだけの手法",
+      "画像のみでテキストを生成させる手法"],
+    answer:1,
+    explain:"Few-shotプロンプティングは、いくつかの「入力と出力のペア例」をプロンプト内に示すことで、AIに期待する形式やパターンを学習・模倣させる手法です。"},
+  {cat:"prompt", q:"曖昧な指示よりも、出力形式・条件・制約を具体的に指定したプロンプトの方が良い結果につながりやすい理由として適切なものはどれか。",
+    choices:[
+      "AIは指示が具体的であるほど意図を推測する余地が減り、求める出力に近づきやすいため",
+      "具体的な指示はAIの学習データ量を増やすため",
+      "具体的な指示を出すとAIの利用料金が下がる仕組みになっているため",
+      "AIは曖昧な指示を一切処理できない仕様になっているため"],
+    answer:0,
+    explain:"AIは入力された情報をもとに次の出力を予測するため、条件や制約が明確であるほど、ユーザーの意図とのズレが小さくなり望む結果を得やすくなります。"},
+  {cat:"prompt", q:"「ステップバイステップで考えてください」のように、思考過程を順序立てて出力させるよう促す手法を一般に何と呼ぶか。",
+    choices:[
+      "ゼロショットプロンプティング",
+      "Chain-of-Thought(思考の連鎖)プロンプティング",
+      "ファインチューニング",
+      "RAG(検索拡張生成)"],
+    answer:1,
+    explain:"Chain-of-Thought(思考の連鎖)プロンプティングは、AIに段階的な推論過程を出力させることで、複雑な問題に対する回答の精度を高める手法です。"},
+  {cat:"prompt", q:"良いプロンプト設計の基本要素として一般的に挙げられないものはどれか。",
+    choices:[
+      "目的・タスクの明確化",
+      "出力形式や文字数などの条件指定",
+      "前提情報・文脈の提供",
+      "AIモデルの内部パラメータ数の指定"],
+    answer:3,
+    explain:"モデル内部のパラメータ数はユーザーが調整するものではありません。良いプロンプトには目的の明確化、条件指定、文脈情報の提供などが重要とされます。"},
+  {cat:"prompt", q:"「ゼロショットプロンプティング」の説明として正しいものはどれか。",
+    choices:[
+      "事例を一切示さず、指示文だけでAIにタスクを実行させる手法",
+      "AIに同じ質問を0回繰り返す手法",
+      "出力結果を完全にゼロから人間が作り直す手法",
+      "AIの料金プランを無料(ゼロ円)にする手法"],
+    answer:0,
+    explain:"ゼロショットプロンプティングは、具体例(ショット)を示さずに指示文のみでAIにタスクを実行させる手法です。Few-shotと対比される基本的な手法です。"},
+  {cat:"prompt", q:"プロンプトの出力が期待通りでない場合の改善アプローチとして適切でないものはどれか。",
+    choices:[
+      "指示の意図を具体的かつ明確に書き直す",
+      "出力形式の例を示す",
+      "一度で満足な結果が得られなければAIの利用自体を諦める",
+      "前提条件や制約条件を追加する"],
+    answer:2,
+    explain:"プロンプトは反復的に改善していくものであり、一度の結果で諦めるのではなく、指示の明確化や条件の追加・修正を繰り返すことでより良い出力に近づけることができます。"},
+  {cat:"prompt", q:"長文の要約をAIに依頼する際、より精度の高い要約を得るための工夫として適切なのはどれか。",
+    choices:[
+      "「いい感じに要約して」とだけ伝える",
+      "要約の目的・対象読者・文字数の上限・重視すべき観点などを具体的に指定する",
+      "原文を一切渡さずに要約させる",
+      "プロンプトを英語以外の言語では絶対に書かない"],
+    answer:1,
+    explain:"要約の目的や読者、長さ、重視する観点などを具体的に指定することで、AIはより意図に沿った要約を生成しやすくなります。"},
+  {cat:"prompt", q:"プロンプトにおける「制約条件」を設定する目的として最も適切なものはどれか。",
+    choices:[
+      "AIの応答を意図的に遅くするため",
+      "出力の範囲や形式を限定し、求める結果からの逸脱を防ぐため",
+      "AIの学習データを削減するため",
+      "プロンプトの文字数を増やして料金を上げるため"],
+    answer:1,
+    explain:"制約条件(文字数、トーン、含めてはいけない内容など)を明示することで、AIの出力が意図した範囲から大きく外れることを防ぎ、より使いやすい結果を得られます。"},
+  {cat:"prompt", q:"プロンプトの末尾に出力フォーマットの例(例:JSON形式や表形式)を指定する効果として適切なものはどれか。",
+    choices:[
+      "AIが必ず例と全く同じ内容を出力するようになる",
+      "出力の構造をシステムやアプリで扱いやすい形に揃えやすくなる",
+      "AIの応答速度が常に倍になる",
+      "プロンプトの著作権が発生しなくなる"],
+    answer:1,
+    explain:"出力フォーマットの例を示すことで、AIはその形式に沿った構造化された出力をしやすくなり、後続のシステム処理やアプリ連携がしやすくなります。"},
+  {cat:"prompt", q:"対話形式で生成AIを使う際、前のやり取りの文脈が踏まえられた応答が返ってくる仕組みに関係するものはどれか。",
+    choices:[
+      "AIが過去のすべてのユーザーとの会話を記憶し続ける仕組み",
+      "同一セッション内で、それまでの会話履歴がプロンプトの一部として渡されることで文脈が維持される仕組み",
+      "AIの内部時計が会話時間を計測する仕組み",
+      "ユーザーのIPアドレスをもとに応答内容を変える仕組み"],
+    answer:1,
+    explain:"多くの生成AIサービスでは、同一の会話セッション内のやり取りが文脈情報としてモデルに渡されるため、過去の発言を踏まえた応答が可能になります。サービスやモデルによって記憶できる範囲(コンテキスト長)には限りがあります。"},
+  {cat:"prompt", q:"プロンプトで「〜してはいけません」という否定形の指示よりも、「〜してください」という肯定形の指示の方が一般に効果的とされる理由として適切なものはどれか。",
+    choices:[
+      "否定形の指示はAIのシステムエラーを引き起こすため絶対に使えない",
+      "何をすべきかを具体的に示す方が、AIにとって望ましい出力像を捉えやすいため",
+      "肯定形の指示は文字数が必ず短くなるため",
+      "否定形の指示には著作権上の制限があるため"],
+    answer:1,
+    explain:"「何をしてはいけないか」よりも「何をすべきか」を具体的に示す方が、AIにとって目指すべき出力のイメージが明確になりやすく、意図した結果を得やすいとされています。"},
+  {cat:"prompt", q:"複雑なタスクを生成AIに依頼する際、一度に全てを要求するのではなく工程を分割して段階的に指示する手法のメリットとして適切なものはどれか。",
+    choices:[
+      "各段階の出力を確認しながら進められるため、誤りの早期発見や軌道修正がしやすくなる",
+      "分割すると必ず処理時間が短縮される",
+      "分割するとAIの利用料金が無料になる",
+      "分割するとハルシネーションが完全に起こらなくなる"],
+    answer:0,
+    explain:"複雑なタスクを段階的に分割して依頼することで、各ステップの出力を都度確認・修正でき、最終的な精度や統制を高めやすくなります。"},
+  {cat:"prompt", q:"画像生成AIへのプロンプトにおいて、構図や画風、色調などを具体的な単語(例:「俯瞰視点」「水彩画風」「淡い色調」)で指定する理由として適切なものはどれか。",
+    choices:[
+      "具体的なキーワードを与えるほど、意図したビジュアルイメージに近い出力が得られやすくなるため",
+      "キーワードの数が多いほど画像のファイルサイズが小さくなるため",
+      "色調を指定しないと画像生成AIは起動しない仕様であるため",
+      "具体的な単語を使うと著作権侵害を完全に回避できるため"],
+    answer:0,
+    explain:"画像生成AIも文章生成AIと同様、プロンプトの具体性が出力の精度に直結します。構図・画風・色調などを明確に指定することで、意図したイメージに近い画像を得やすくなります。"},
+  {cat:"prompt", q:"プロンプトインジェクションに関する説明として適切なものはどれか。",
+    choices:[
+      "AIモデルの学習速度を向上させる正規の技術",
+      "悪意ある入力によってAIに本来の制約や指示を無視させ、意図しない動作をさせようとする攻撃手法",
+      "AIにワクチンを接種させる比喩表現",
+      "プロンプトを多言語に自動翻訳する機能"],
+    answer:1,
+    explain:"プロンプトインジェクションは、巧妙な入力文によってAIに設定された制約やシステム指示を無視させ、本来意図しない情報の出力や動作を引き起こさせようとする攻撃手法で、セキュリティ上の脅威として知られています。"},
+
+  // ---------------- 業務活用・リテラシー ----------------
+  {cat:"usage", q:"生成AIを業務で活用する際のメリットとして適切でないものはどれか。",
+    choices:[
+      "文書作成やアイデア出しなどの定型的・補助的業務の効率化",
+      "出力結果が常に100%正確であることが保証される",
+      "壁打ち相手として多様な視点やたたき台を素早く得られること",
+      "大量の情報の要約・整理を短時間で行えること"],
+    answer:1,
+    explain:"生成AIの出力には誤りが含まれる可能性があるため、常に100%正確とは限りません。業務利用では必ず人間による確認・検証が必要です。"},
+  {cat:"usage", q:"生成AIを業務利用する際に、機密情報の取り扱いとして適切な行動はどれか。",
+    choices:[
+      "社内の未公開情報や顧客の個人情報を外部の生成AIサービスに自由に入力する",
+      "会社のガイドラインを確認し、機密情報や個人情報は入力しない、または許可された安全な環境のみで利用する",
+      "情報の機密性に関わらずすべて入力して効率を優先する",
+      "個人情報は仮名にすれば無条件に入力してよい"],
+    answer:1,
+    explain:"外部の生成AIサービスに入力したデータが学習や第三者への漏洩リスクにつながる可能性があるため、企業のガイドラインに従い機密情報・個人情報の入力を避けることが重要です。"},
+  {cat:"usage", q:"生成AIの出力をビジネス文書にそのまま利用する際に注意すべき点として最も適切なのはどれか。",
+    choices:[
+      "AIの出力は常に最終成果物として無修正でそのまま使ってよい",
+      "事実確認(ファクトチェック)や著作権・表現の妥当性を人間が確認したうえで利用する",
+      "出力の確認は不要で、誤りがあってもAIの責任になる",
+      "社外秘の文書作成にのみAIを利用し、社内文書には使わない"],
+    answer:1,
+    explain:"生成AIの出力には誤情報や著作権上のリスクが含まれる可能性があるため、最終的な内容の正確性・適切性は人間が確認・編集する責任があります。"},
+  {cat:"usage", q:"生成AIを使った業務効率化の例として「壁打ち」的な使い方とはどのようなものか。",
+    choices:[
+      "AIに最終承認の権限を与えること",
+      "AIに案やアイデアを出させ、人間がそれを叩き台として検討・発展させる対話的な使い方",
+      "AIにすべての意思決定を一任すること",
+      "AIの出力を一切確認せず提出すること"],
+    answer:1,
+    explain:"「壁打ち」とは、AIに複数の案や視点を出してもらい、それを人間が取捨選択・発展させていく対話的な活用方法で、ブレインストーミングや企画検討に有効です。"},
+  {cat:"usage", q:"AIリテラシーを持つ人材に求められる姿勢として適切なものはどれか。",
+    choices:[
+      "AIの出力を疑うことなく常にそのまま信頼する",
+      "AIの得意・不得意を理解し、出力を批判的に検証しながら適切に活用する",
+      "AIを業務に一切使わない方針を貫く",
+      "AIの仕組みを理解する必要はなく使い方だけ覚えればよい"],
+    answer:1,
+    explain:"AIリテラシーとは、AIの特性(得意・不得意、限界)を理解した上で、出力を鵜呑みにせず批判的に検証しながら適切に活用できる能力を指します。"},
+  {cat:"usage", q:"生成AIの導入によって組織が得やすい効果として最も適切なものはどれか。",
+    choices:[
+      "すべての従業員の業務が完全に自動化され人手が不要になる",
+      "定型業務や情報整理の負荷が軽減され、人がより創造的・判断的な業務に時間を割けるようになる",
+      "AIの判断が常に経営判断より優先される",
+      "システム導入コストが一切かからなくなる"],
+    answer:1,
+    explain:"生成AIは定型的な作業や情報整理を効率化することで、人がより付加価値の高い創造的・戦略的な業務に注力できる環境づくりに貢献すると期待されています。"},
+  {cat:"usage", q:"生成AIを使ったアイデア出し(ブレインストーミング)における留意点として適切なものはどれか。",
+    choices:[
+      "AIが出した案をそのまま採用予定の最終案として確定させる",
+      "AIの案を多様な選択肢の一つとして捉え、実現可能性や独自性を人間が吟味する",
+      "AIにアイデアを出させること自体が不正行為にあたる",
+      "AIの案は必ず人間の案より優れているとみなす"],
+    answer:1,
+    explain:"AIが生成する案は多様な視点を素早く得るのに有用ですが、実現可能性や妥当性、独自性については人間が責任を持って評価・選別する必要があります。"},
+  {cat:"usage", q:"社内で生成AIを導入する際に整備しておくことが望ましいものとして適切でないものはどれか。",
+    choices:[
+      "利用ガイドラインやルールの策定",
+      "従業員向けのAIリテラシー教育",
+      "入力してよい情報・してはいけない情報の明確化",
+      "AIに関するルールは一切定めず従業員の自由な判断に完全に委ねる"],
+    answer:3,
+    explain:"生成AIの利用にはリスクが伴うため、組織としてガイドラインの策定や教育、情報取り扱いルールの明確化を行うことが、安全な活用のために重要です。"},
+  {cat:"usage", q:"生成AIを活用したカスタマーサポート(チャットボット等)の説明として適切なものはどれか。",
+    choices:[
+      "すべての問い合わせ対応を完全に人手不要にできることが保証されている",
+      "定型的な問い合わせへの一次対応を自動化しつつ、複雑な案件は人間のオペレーターに引き継ぐ運用が一般的",
+      "チャットボットは一切誤った案内をすることがない",
+      "顧客対応に生成AIを使うことは法律で禁止されている"],
+    answer:1,
+    explain:"生成AIを活用したチャットボットは、よくある質問など定型的な一次対応の自動化に有効ですが、誤回答のリスクもあるため、複雑な問い合わせは人間が対応する体制が一般的です。"},
+  {cat:"usage", q:"生成AIを活用したマーケティング業務(広告文・キャッチコピー作成など)における留意点として適切なものはどれか。",
+    choices:[
+      "生成された表現が誇大広告や景品表示法などの規制に抵触しないか人間が確認する必要がある",
+      "AIが作成した広告文は法令確認なしにそのまま配信してよい",
+      "AIを使うと著作権や薬機法などの規制が一切適用されなくなる",
+      "マーケティング分野では生成AIの利用が法律で禁止されている"],
+    answer:0,
+    explain:"広告表現には景品表示法や薬機法などの各種規制があり、AIが生成した文章であっても内容が規制に抵触していないか、配信前に人間が確認することが必要です。"},
+  {cat:"usage", q:"生成AIを使ってプログラムのコードを生成・補助させる際の留意点として適切なものはどれか。",
+    choices:[
+      "生成されたコードは脆弱性やバグを含む可能性があるため、人間によるレビューやテストが必要",
+      "AIが生成したコードには絶対にバグが存在しない",
+      "AIにコードを書かせる行為自体が著作権法で一律禁止されている",
+      "生成されたコードはテストを行わずに本番環境へ即座に反映してよい"],
+    answer:0,
+    explain:"AIが生成するコードにも誤りやセキュリティ上の脆弱性が含まれる可能性があるため、人間によるコードレビューやテストを経てから利用することが推奨されます。"},
+  {cat:"usage", q:"生成AIの活用が組織の業務プロセスにもたらす変化として、一般的に指摘される適切な観点はどれか。",
+    choices:[
+      "AIの導入により人間の役割は完全になくなる",
+      "定型業務がAIに移行する一方で、AIの出力を評価・監督し最終判断を下す人間の役割の重要性が増す",
+      "AIの導入によって業務プロセスの見直しは一切不要になる",
+      "AIはすべての意思決定において人間の承認を必要としない"],
+    answer:1,
+    explain:"生成AIの導入により定型業務の一部はAIに移行しますが、出力の妥当性評価や最終的な意思決定、責任の所在といった人間にしかできない役割の重要性はむしろ増すと指摘されています。"},
+  {cat:"usage", q:"複数の生成AIサービスを比較検討して業務に導入する際の評価観点として適切でないものはどれか。",
+    choices:[
+      "セキュリティ対策やデータの取り扱い方針",
+      "業務内容との適合性や出力精度",
+      "サービス名の語感が流行に合っているかどうかのみ",
+      "料金体系やサポート体制"],
+    answer:2,
+    explain:"AIサービス導入の評価では、セキュリティ・出力精度・業務適合性・料金体系・サポート体制などが重要な観点であり、サービス名の語感のみで判断することは適切な選定基準とはいえません。"},
+  {cat:"usage", q:"生成AIを用いた社内ナレッジ検索・FAQ自動応答システムの構築でよく用いられる技術として適切なものはどれか。",
+    choices:[
+      "社内文書を検索対象にしたRAG(検索拡張生成)の仕組みを組み合わせる",
+      "AIに社内文書を一切参照させずゼロから推測のみで回答させる",
+      "FAQの自動応答には必ず人手のみで対応しAIを使わない",
+      "社内ナレッジ検索には画像生成AIのみを利用する"],
+    answer:0,
+    explain:"社内文書やマニュアルを検索対象としたRAG(検索拡張生成)を組み合わせることで、社内特有の情報に基づいた正確な回答を生成AIが行いやすくなります。"},
+
+  // ---------------- 法律・倫理・リスク ----------------
+  {cat:"risk", q:"生成AIの利用における著作権上の注意点として適切なものはどれか。",
+    choices:[
+      "AIが生成したものは著作権の問題が一切発生しない",
+      "既存の著作物と酷似した生成物を商用利用すると、著作権侵害となるリスクがある",
+      "生成AIサービスを使えば誰のどんな著作物も自由に複製してよい",
+      "著作権は生成AIの提供企業がすべて代わりに保証してくれる"],
+    answer:1,
+    explain:"生成物が既存の著作物に類似・依拠していると判断された場合、著作権侵害となる可能性があります。学習データや出力の取り扱いには注意が必要です。"},
+  {cat:"risk", q:"生成AIに個人情報を入力する際の注意点として最も適切なものはどれか。",
+    choices:[
+      "個人情報保護の観点から、本人の同意なく第三者の個人情報をむやみに入力しない",
+      "個人情報はAIに入力すれば自動的に匿名化される",
+      "業務効率のためなら個人情報の入力は常に許容される",
+      "個人情報保護法は生成AIの利用には適用されない"],
+    answer:0,
+    explain:"生成AIへの入力データが学習やログとして保存・利用される可能性があるため、個人情報保護法の趣旨を踏まえ、不必要な個人情報の入力は避けるべきです。"},
+  {cat:"risk", q:"生成AIが出力した誤情報を信じて第三者に損害を与えた場合の責任について、現状一般的に言われていることとして適切なのはどれか。",
+    choices:[
+      "AI開発企業が常に全責任を負うと法律で一律に定められている",
+      "AIの出力をどう利用するかは利用者の判断であり、利用者にも一定の確認責任が求められる",
+      "AIには人格があるため、AI自身が法的責任を負う",
+      "誤情報が含まれていても利用者は一切責任を問われない"],
+    answer:1,
+    explain:"生成AIの出力をそのまま信用して利用するかどうかは利用者の判断に委ねられる部分が大きく、出力内容の事実確認や利用上の注意は利用者側にも求められます。"},
+  {cat:"risk", q:"生成AIにまつわる「バイアス」の問題として適切な説明はどれか。",
+    choices:[
+      "AIは学習データに含まれる偏り(バイアス)を反映した出力をしてしまうことがある",
+      "AIは常に完全に中立で偏りのない出力しかできない",
+      "バイアスは画像生成AIにのみ存在し、文章生成AIには存在しない",
+      "バイアスは利用者側の意識の問題であり、AI自体には無関係である"],
+    answer:0,
+    explain:"生成AIは学習データの傾向や偏りを反映しやすく、性別・人種・文化などに関するステレオタイプを含んだ出力をしてしまうリスクがあるため、注意が必要です。"},
+  {cat:"risk", q:"ディープフェイクに関する説明として適切なものはどれか。",
+    choices:[
+      "AI技術を用いて、実在の人物の顔や声をリアルに合成・改変した偽の画像・動画・音声のこと",
+      "AIが生成した完全にオリジナルなフィクションキャラクターのこと",
+      "ディープラーニングの学習データを暗号化する技術のこと",
+      "AIモデルのバグを修正する作業のこと"],
+    answer:0,
+    explain:"ディープフェイクは、AI技術により実在人物の映像・音声をリアルに偽造・合成する技術や、その生成物を指し、なりすましや誤情報拡散などの悪用リスクが問題視されています。"},
+  {cat:"risk", q:"生成AIサービスの利用規約や各国の法規制(EU AI法など)が整備されつつある背景として最も適切な理由はどれか。",
+    choices:[
+      "生成AIには社会的リスクが伴わないことを証明するため",
+      "生成AIの急速な普及に伴い、安全性・公平性・透明性などを確保する必要が高まっているため",
+      "生成AIの開発企業の利益を最大化するため",
+      "生成AIの利用を完全に禁止するため"],
+    answer:1,
+    explain:"生成AIの急速な普及により、誤情報・著作権・プライバシー・公平性などのリスクが顕在化しており、これに対応するため各国・地域で法規制やガイドラインの整備が進められています。"},
+  {cat:"risk", q:"生成AIの活用において「説明責任(アカウンタビリティ)」が重要とされる理由として適切なものはどれか。",
+    choices:[
+      "AIの判断・出力プロセスが不透明な場合があり、利用結果について人間側が説明・責任を持てる体制が求められるため",
+      "AIは常に判断根拠を完全に開示する義務が法律で定められているため",
+      "AIの利用は責任の所在を考える必要がない行為であるため",
+      "説明責任はAI開発企業のみが負うものであり、利用者には無関係であるため"],
+    answer:0,
+    explain:"AIの内部処理は「ブラックボックス」になりやすく、判断根拠が分かりにくい場合があります。そのため、AIを利用する組織・個人が結果について説明・責任を持てる体制づくりが重要とされています。"},
+  {cat:"risk", q:"生成AIの利用規約で「学習データへの利用」について確認すべき理由として適切なものはどれか。",
+    choices:[
+      "確認しなくても入力内容が外部に利用されることは絶対にないため",
+      "サービスによっては入力した内容がモデルの再学習等に利用される場合があり、機密情報の取り扱いに影響するため",
+      "学習データへの利用に関する規約は存在しないため確認不要",
+      "利用規約の確認はAI開発企業の義務であり利用者には関係ないため"],
+    answer:1,
+    explain:"サービスによっては、入力したプロンプトや出力内容がモデルの学習に再利用される可能性があります。機密情報や個人情報を扱う際は、利用規約やオプトアウト設定を事前に確認することが重要です。"},
+  {cat:"risk", q:"生成AIの出力をそのまま試験のレポートや論文として提出する行為について、一般的に指摘される問題点として適切なものはどれか。",
+    choices:[
+      "学術的な独自性や評価の公正性が損なわれるおそれがあり、多くの教育機関で不正行為とみなされうる",
+      "AIが作成した文章は人間が書いた文章より常に質が高いため問題にならない",
+      "AIの出力を使う行為に関する規定は世界中どこにも存在しない",
+      "AIが作成した文章には著作権が一切発生しないため自由に使ってよい"],
+    answer:0,
+    explain:"教育機関の多くは、生成AIの出力をそのまま自分の成果物として提出することを学術的不正(剽窃に類する行為)とみなす場合があり、各機関のポリシー確認が必要です。"},
+  {cat:"risk", q:"生成AIによる「フェイクニュース」や偽情報の拡散リスクへの対策として適切な利用者の行動はどれか。",
+    choices:[
+      "AIが生成した情報源不明の内容を、検証せずそのままSNS等で拡散する",
+      "情報の出典を確認し、信頼できる複数の情報源と照らし合わせてから発信する",
+      "AIが出力した内容はすべて公式な事実として扱う",
+      "偽情報対策は政府の仕事であり個人は気にしなくてよい"],
+    answer:1,
+    explain:"生成AIは誤情報や根拠不明な内容を生成する可能性があるため、利用者自身が出典確認やファクトチェックを行い、信頼できる情報のみを発信することが偽情報拡散の抑止につながります。"},
+  {cat:"risk", q:"生成AIにおける「プライバシー・バイ・デザイン」の考え方に近いものはどれか。",
+    choices:[
+      "製品やサービスの設計段階からプライバシー保護の仕組みをあらかじめ組み込んでおく考え方",
+      "プライバシー保護はサービス公開後に問題が起きてから対応すればよいという考え方",
+      "個人情報は一切収集せず匿名のデータのみで運用する義務を指す法律用語",
+      "プライバシーに関する設定をすべてユーザーの自己責任とする考え方"],
+    answer:0,
+    explain:"プライバシー・バイ・デザインは、システムやサービスの企画・設計段階からプライバシー保護対策を組み込んでおくという考え方で、生成AIサービスの開発・運用でも重視されています。"},
+  {cat:"risk", q:"生成AIが意図せず差別的・攻撃的な表現を出力するリスクを低減するための一般的な対策として適切でないものはどれか。",
+    choices:[
+      "出力内容を不適切な表現がないかフィルタリング・モデレーションする仕組みを導入する",
+      "学習データの偏りや多様性を考慮してモデルを設計・評価する",
+      "問題が起きても対策せず利用者の自己責任とし開発側は一切関与しない",
+      "ガイドラインに基づき不適切な出力を継続的に検証・改善する"],
+    answer:2,
+    explain:"生成AIサービスの提供側には、フィルタリングや継続的な検証・改善を通じて不適切な出力のリスクを低減する取り組みが求められており、「自己責任で放置する」という姿勢は適切ではありません。"},
+  {cat:"risk", q:"生成AIで作成した画像や文章を商用利用する際に、トラブルを避けるために確認すべき事項として適切でないものはどれか。",
+    choices:[
+      "利用しているサービスの利用規約上、生成物の商用利用が認められているか",
+      "既存の著作物やキャラクターと酷似していないか",
+      "実在の人物の肖像権・パブリシティ権を侵害していないか",
+      "確認作業は時間の無駄であるため一切行わない"],
+    answer:3,
+    explain:"生成物の商用利用にあたっては、サービスの利用規約、著作権・肖像権などの権利侵害の有無を事前に確認することが、トラブル回避のために重要です。"},
+  {cat:"risk", q:"AIの倫理原則としてしばしば挙げられる「公平性(フェアネス)」の説明として適切なものはどれか。",
+    choices:[
+      "AIの判断や出力が特定の属性(性別・人種など)によって不当に差別的・不利益な結果を生まないようにする考え方",
+      "すべてのユーザーにAIを無料で提供すべきという考え方",
+      "AIの開発企業の利益配分を均等にする考え方",
+      "AIの回答速度をすべてのユーザーで同じにする考え方"],
+    answer:0,
+    explain:"公平性(フェアネス)は、AIの判断や出力が特定の属性によって不当な差別や不利益を生まないようにするという、AI倫理における重要な原則の一つです。"},
+  {cat:"risk", q:"生成AIによって作成された音声や映像を使った「なりすまし詐欺」への注意として適切なものはどれか。",
+    choices:[
+      "電話やビデオ通話の声・映像が本人そっくりでも、それだけで本人確認の根拠とせず、別の手段で真偽を確認する",
+      "本人そっくりの声であれば本人だと無条件に信じて送金などの指示に従ってよい",
+      "なりすまし詐欺は生成AI技術の発展以前には存在しなかった全く新しい問題であり対策不要",
+      "音声や映像のなりすましは技術的に不可能であるため心配する必要はない"],
+    answer:0,
+    explain:"生成AI技術の発達により、本人そっくりの音声・映像を用いたなりすまし詐欺のリスクが高まっています。声や映像だけで判断せず、別の連絡手段での確認など多角的な本人確認が重要です。"},
+  {cat:"risk", q:"生成AIの開発・提供企業に課される可能性がある責任に関する一般的な考え方として適切なものはどれか。",
+    choices:[
+      "AIの安全性確保やリスク低減のための技術的・組織的対策を講じることが社会的に期待されている",
+      "AI開発企業はサービス提供後の結果について一切関与する必要がない",
+      "AI開発企業に対する規制やガイドラインは今後も一切整備される予定がない",
+      "AIの安全性確保はすべて利用者個人の責任であり開発企業は無関係である"],
+    answer:0,
+    explain:"AI開発・提供企業には、安全性評価やリスク低減策の実施、透明性の確保など、社会的な信頼を得るための取り組みが求められており、各国でガイドラインや法規制の整備も進んでいます。"},
+  {cat:"risk", q:"生成AIに関する「透明性(トランスペアレンシー)」の確保として適切な取り組みはどれか。",
+    choices:[
+      "AIが生成したコンテンツであることを利用者にわかるように明示するなど、AIの関与を可能な範囲で開示すること",
+      "AIの内部処理をすべての利用者に完全に公開する義務を一律に課すこと",
+      "AIが関与したことを常に隠して人間が作成したように見せること",
+      "透明性の確保は技術的に不可能であるため検討する必要がない"],
+    answer:0,
+    explain:"透明性の確保には、AIが生成したコンテンツであることの明示や、AIの利用方針・限界について利用者に分かりやすく説明することなどが含まれ、信頼性のあるAI活用の基盤となります。"},
+];
+
+/* ===================== 状態管理 ===================== */
+const STORAGE_KEY = "ai_passport_quiz_state_v1";
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {
+    totalAnswered:0,
+    totalCorrect:0,
+    catStats:{}, // {catId: {answered, correct}}
+    wrongQIds:[], // 間違えた問題のインデックス(重複可、最新を優先)
+    studyDates:[] // YYYY-MM-DD の配列
+  };
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+let state = loadState();
+
+// 問題にユニークIDを付与(配列インデックス)
+QUESTIONS.forEach((q,i)=>q.id=i);
+
+let session = null; // 現在のクイズセッション
+
+/* ===================== 画面遷移 ===================== */
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* ===================== ホーム画面描画 ===================== */
+function renderHome(){
+  document.getElementById("stat-total").textContent = state.totalAnswered;
+  const rate = state.totalAnswered ? Math.round(state.totalCorrect/state.totalAnswered*100) : 0;
+  document.getElementById("stat-rate").textContent = rate + "%";
+  document.getElementById("stat-streak").textContent = state.studyDates.length;
+
+  const list = document.getElementById("cat-list");
+  list.innerHTML = "";
+  CATEGORIES.forEach(c=>{
+    const cs = state.catStats[c.id] || {answered:0, correct:0};
+    const total = QUESTIONS.filter(q=>q.cat===c.id).length;
+    const div = document.createElement("div");
+    div.className = "cat-item";
+    div.innerHTML = `
+      <div class="ci-left">
+        <div class="ci-icon">${c.icon}</div>
+        <div>
+          <div class="ci-name">${c.name}</div>
+          <div class="ci-sub">${c.sub} (全${total}問)</div>
+        </div>
+      </div>
+      <div class="ci-progress">${cs.answered ? Math.round(cs.correct/cs.answered*100)+"%" : "未挑戦"}</div>
+    `;
+    div.addEventListener("click", ()=>startQuiz(c.id));
+    list.appendChild(div);
+  });
+
+  const wrongBtn = document.getElementById("btn-wrong-review");
+  wrongBtn.disabled = state.wrongQIds.length === 0;
+  wrongBtn.style.opacity = state.wrongQIds.length === 0 ? "0.5" : "1";
+}
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(catId){
+  let pool;
+  if(catId === "all"){
+    pool = shuffle(QUESTIONS).slice(0,25);
+  } else if(catId === "wrong"){
+    const uniqueIds = [...new Set(state.wrongQIds)];
+    pool = shuffle(uniqueIds.map(id=>QUESTIONS[id]));
+  } else {
+    pool = shuffle(QUESTIONS.filter(q=>q.cat===catId));
+  }
+  session = {
+    questions: pool,
+    index: 0,
+    correct: 0,
+    answered: false,
+    results: [] // {qId, chosen, isCorrect}
+  };
+  showScreen("screen-quiz");
+  renderQuestion();
+}
+
+function catName(id){
+  const c = CATEGORIES.find(c=>c.id===id);
+  return c ? c.icon + " " + c.name : id;
+}
+
+function renderQuestion(){
+  const q = session.questions[session.index];
+  document.getElementById("quiz-position").textContent =
+    `問題 ${session.index+1} / ${session.questions.length}`;
+  document.getElementById("quiz-score").textContent = `正解 ${session.correct}`;
+  document.getElementById("progress-fill").style.width =
+    (session.index/session.questions.length*100) + "%";
+  document.getElementById("q-cat-badge").textContent = catName(q.cat);
+  document.getElementById("q-text").textContent = q.q;
+
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+  const marks = ["A","B","C","D"];
+  q.choices.forEach((choiceText, idx)=>{
+    const div = document.createElement("div");
+    div.className = "choice";
+    div.innerHTML = `<div class="c-mark">${marks[idx]}</div><div>${choiceText}</div>`;
+    div.addEventListener("click", ()=>selectAnswer(idx));
+    choicesDiv.appendChild(div);
+  });
+
+  document.getElementById("explain-box").classList.remove("show");
+  document.getElementById("btn-next").style.display = "none";
+  session.answered = false;
+}
+
+function selectAnswer(idx){
+  if(session.answered) return;
+  session.answered = true;
+  const q = session.questions[session.index];
+  const isCorrect = idx === q.answer;
+  if(isCorrect) session.correct++;
+
+  // 統計更新
+  state.totalAnswered++;
+  if(isCorrect) state.totalCorrect++;
+  if(!state.catStats[q.cat]) state.catStats[q.cat] = {answered:0, correct:0};
+  state.catStats[q.cat].answered++;
+  if(isCorrect) state.catStats[q.cat].correct++;
+
+  if(!isCorrect){
+    state.wrongQIds.push(q.id);
+    if(state.wrongQIds.length > 100) state.wrongQIds.shift();
+  } else {
+    // 正解したら苦手リストから除去
+    state.wrongQIds = state.wrongQIds.filter(id=>id!==q.id);
+  }
+
+  const today = new Date().toISOString().slice(0,10);
+  if(!state.studyDates.includes(today)) state.studyDates.push(today);
+  saveState();
+
+  session.results.push({qId:q.id, chosen:idx, isCorrect});
+
+  // UI反映
+  const choiceEls = document.querySelectorAll("#choices .choice");
+  choiceEls.forEach((el,i)=>{
+    el.classList.add("disabled");
+    if(i === q.answer) el.classList.add("correct");
+    else if(i === idx) el.classList.add("wrong");
+  });
+
+  document.getElementById("explain-text").textContent = q.explain;
+  document.getElementById("explain-box").classList.add("show");
+  document.getElementById("quiz-score").textContent = `正解 ${session.correct}`;
+  document.getElementById("btn-next").style.display = "block";
+
+  if(session.index === session.questions.length - 1){
+    document.getElementById("btn-next").textContent = "結果を見る";
+  }
+}
+
+function nextQuestion(){
+  if(session.index === session.questions.length - 1){
+    showResult();
+  } else {
+    session.index++;
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  showScreen("screen-result");
+  const total = session.questions.length;
+  const correct = session.correct;
+  const pct = Math.round(correct/total*100);
+  document.getElementById("result-pct").textContent = pct + "%";
+  document.getElementById("result-frac").textContent = `${correct}/${total}問`;
+
+  let msg;
+  if(pct >= 90) msg = "素晴らしい!合格ラインを大きく上回っています 🎉";
+  else if(pct >= 70) msg = "良い調子です!間違えた問題を復習しましょう 👍";
+  else if(pct >= 50) msg = "基礎は身についています。苦手分野を重点的に復習しましょう 📚";
+  else msg = "まずは各分野の基礎からじっくり学習しましょう 💪";
+  document.getElementById("result-msg").textContent = msg;
+
+  const reviewList = document.getElementById("review-list");
+  reviewList.innerHTML = "";
+  session.results.forEach(r=>{
+    const q = QUESTIONS[r.qId];
+    const div = document.createElement("div");
+    div.className = "review-item " + (r.isCorrect ? "right" : "wrong");
+    div.innerHTML = `
+      <div class="ri-q">${r.isCorrect ? "✅" : "❌"} ${q.q}</div>
+      <div class="ri-ans">正解: ${q.choices[q.answer]}</div>
+    `;
+    reviewList.appendChild(div);
+  });
+}
+
+/* ===================== イベント登録 ===================== */
+document.getElementById("btn-start-all").addEventListener("click", ()=>startQuiz("all"));
+document.getElementById("btn-wrong-review").addEventListener("click", ()=>{
+  if(state.wrongQIds.length === 0) return;
+  startQuiz("wrong");
+});
+document.getElementById("btn-reset").addEventListener("click", ()=>{
+  if(confirm("学習記録をすべてリセットします。よろしいですか?")){
+    state = {totalAnswered:0, totalCorrect:0, catStats:{}, wrongQIds:[], studyDates:[]};
+    saveState();
+    renderHome();
+  }
+});
+document.getElementById("btn-quit").addEventListener("click", ()=>{
+  showScreen("screen-home");
+  renderHome();
+});
+document.getElementById("btn-next").addEventListener("click", nextQuestion);
+document.getElementById("btn-result-home").addEventListener("click", ()=>{
+  showScreen("screen-home");
+  renderHome();
+});
+document.getElementById("btn-retry").addEventListener("click", ()=>{
+  const cats = [...new Set(session.questions.map(q=>q.cat))];
+  if(cats.length > 1){
+    startQuiz("all");
+  } else {
+    startQuiz(cats[0]);
+  }
+});
+
+/* ===================== 初期化 ===================== */
+renderHome();
+</script>
+</body>
+</html>
