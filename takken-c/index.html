@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宅建 統合ラボ — 4分野ケーススタディ</title>
+<style>
+  :root{
+    /* デフォルト（権利関係） */
+    --bg:#0b1320; --panel:#101b2d; --panel2:#0d2235; --line:#1f3a52;
+    --main:#16a3a3; --main-dim:#0c5454; --amber:#ffb454; --danger:#ff5d6c; --ok:#3ddc97;
+    --ink:#dce8f0; --ink-dim:#7e95a8;
+    --font-display:'Yu Gothic', 'Hiragino Sans', sans-serif;
+  }
+  body[data-field="gyoho"]{
+    --bg:#11140d; --panel:#1a1f15; --panel2:#161a10; --line:#3a3a22;
+    --main:#ef9f27; --main-dim:#855010; --danger:#e24b4a; --ok:#63d699;
+    --ink:#e8e4d8; --ink-dim:#8a8770;
+  }
+  body[data-field="houserei"]{
+    --bg:#081325; --panel:#0d1d33; --panel2:#0a1729; --line:#234060;
+    --main:#378add; --main-dim:#1c4a73; --danger:#e24b4a; --ok:#5dcaa5;
+    --ink:#dce8f0; --ink-dim:#7e95a8;
+  }
+  body[data-field="zeimu"]{
+    --bg:#0c1408; --panel:#161f0d; --panel2:#121a0a; --line:#2c3a18;
+    --main:#7fbf3f; --main-dim:#3f6020; --danger:#e24b4a; --ok:#a8d65f;
+    --ink:#e4ead8; --ink-dim:#8a9270;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(255,255,255,.04) 0%, transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(255,255,255,.03) 0%, transparent 40%),
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--font-display);
+    min-height:100vh;
+    padding:14px;
+    line-height:1.65;
+    transition:background-color .3s;
+  }
+  body[data-field="houserei"]{
+    background:
+      repeating-linear-gradient(0deg, rgba(55,138,221,.05) 0px, rgba(55,138,221,.05) 1px, transparent 1px, transparent 24px),
+      repeating-linear-gradient(90deg, rgba(55,138,221,.05) 0px, rgba(55,138,221,.05) 1px, transparent 1px, transparent 24px),
+      radial-gradient(circle at 15% 0%, #0f2540 0%, transparent 45%),
+      radial-gradient(circle at 90% 10%, #0c1f38 0%, transparent 40%),
+      var(--bg);
+  }
+  .lab{ max-width:720px; margin:0 auto; }
+  .screen{ display:none; }
+  .screen.show{ display:block; }
+
+  /* ---------- ヘッダー ---------- */
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:10px 14px;
+    background:linear-gradient(180deg, color-mix(in srgb, var(--panel) 90%, white 4%), var(--panel2));
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .lab-title{font-size:14px; letter-spacing:.08em; color:var(--ink-dim); display:flex; align-items:center; gap:8px;}
+  .lab-title b{color:var(--main); font-size:16px; letter-spacing:.02em;}
+  .header-btns{display:flex; gap:6px;}
+  .nav-btn{
+    background:var(--panel2); border:1px solid var(--line); color:var(--ink-dim);
+    border-radius:9px; padding:6px 10px; font-size:12px; cursor:pointer;
+    font-family:inherit;
+  }
+  .nav-btn:hover{border-color:var(--main); color:var(--main);}
+  .meter{display:flex; gap:14px; font-size:12px; color:var(--ink-dim);}
+  .meter b{color:var(--main); font-size:14px;}
+
+  /* ---------- 進捗バー ---------- */
+  .tube-wrap{display:flex; align-items:center; gap:8px; margin-bottom:14px;}
+  .tube{ flex:1; height:10px; border-radius:6px; background:var(--panel2); border:1px solid var(--line); overflow:hidden; }
+  .tube-fill{ height:100%; background:linear-gradient(90deg,var(--main-dim),var(--main)); width:0%; transition:width .5s ease; }
+  .tube-label{font-size:11px; color:var(--ink-dim); white-space:nowrap;}
+
+  /* ---------- 分野選択画面 ---------- */
+  .field-hero{
+    text-align:center; padding:28px 16px 20px;
+    background:linear-gradient(160deg,#161c28,#11151e);
+    border:1px solid #2a3344; border-radius:16px; margin-bottom:16px;
+  }
+  .field-hero-emoji{font-size:38px; margin-bottom:6px;}
+  .field-hero-title{font-size:19px; font-weight:700; color:#f3f6fa; margin:0 0 4px;}
+  .field-hero-sub{font-size:12.5px; color:#8a93a8; margin:0;}
+
+  .field-grid{display:flex; flex-direction:column; gap:10px;}
+  .field-card{
+    display:flex; align-items:center; gap:14px;
+    background:#141a24; border:1px solid #283142; border-radius:14px;
+    padding:14px 16px; cursor:pointer; text-align:left;
+    transition:all .15s; width:100%; font-family:inherit; color:inherit;
+  }
+  .field-card:hover{ transform:translateY(-1px); }
+  .field-card-emoji{
+    font-size:26px; width:46px; height:46px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:12px;
+  }
+  .field-card-body{flex:1; min-width:0;}
+  .field-card-name{font-size:14.5px; font-weight:700; color:#f3f6fa;}
+  .field-card-sub{font-size:11.5px; color:#8a93a8; margin-top:1px;}
+  .field-card-stats{font-size:10.5px; color:#6b7488; margin-top:4px;}
+  .field-card-arrow{font-size:16px; color:#5a6478; flex-shrink:0;}
+
+  .field-card[data-color="rights"] .field-card-emoji{background:rgba(22,163,163,.16);}
+  .field-card[data-color="rights"]:hover{border-color:#16a3a3;}
+  .field-card[data-color="gyoho"] .field-card-emoji{background:rgba(239,159,39,.16);}
+  .field-card[data-color="gyoho"]:hover{border-color:#ef9f27;}
+  .field-card[data-color="houserei"] .field-card-emoji{background:rgba(55,138,221,.16);}
+  .field-card[data-color="houserei"]:hover{border-color:#378add;}
+  .field-card[data-color="zeimu"] .field-card-emoji{background:rgba(127,191,63,.16);}
+  .field-card[data-color="zeimu"]:hover{border-color:#7fbf3f;}
+
+  /* ---------- タイトル画面（分野内） ---------- */
+  .hero{
+    text-align:center; padding:26px 16px 18px;
+    background:linear-gradient(160deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:16px; margin-bottom:14px;
+  }
+  .hero-emoji{font-size:40px; margin-bottom:6px;}
+  .hero-title{font-size:19px; font-weight:700; color:var(--ink); margin:0 0 4px;}
+  .hero-sub{font-size:12.5px; color:var(--ink-dim); margin:0;}
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+  .stat-card{ background:var(--panel2); border:1px solid var(--line); border-radius:11px; padding:10px 6px; text-align:center; }
+  .stat-num{font-size:18px; font-weight:700; color:var(--main);}
+  .stat-label{font-size:10.5px; color:var(--ink-dim); margin-top:2px;}
+
+  .menu-list{display:flex; flex-direction:column; gap:10px; margin-bottom:14px;}
+  .menu-btn{
+    display:flex; align-items:center; gap:12px;
+    background:var(--panel2); border:1px solid var(--line); border-radius:13px;
+    padding:14px 16px; cursor:pointer; font-family:inherit; text-align:left;
+    color:var(--ink); transition:all .15s; width:100%;
+  }
+  .menu-btn:hover{border-color:var(--main);}
+  .menu-btn .menu-icon{font-size:22px; flex-shrink:0;}
+  .menu-btn .menu-text-title{font-size:14px; font-weight:700; color:var(--ink);}
+  .menu-btn .menu-text-sub{font-size:11.5px; color:var(--ink-dim); margin-top:2px;}
+  .menu-btn.primary{
+    background:linear-gradient(180deg, color-mix(in srgb, var(--main) 18%, transparent), color-mix(in srgb, var(--main-dim) 10%, transparent));
+    border-color:var(--main-dim);
+  }
+
+  /* ---------- ケースパネル ---------- */
+  .case-panel{
+    background:linear-gradient(160deg,var(--panel),var(--panel2));
+    border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
+    box-shadow:0 18px 40px -20px #000; margin-bottom:14px;
+  }
+  .case-panel::before{
+    content:""; position:absolute; top:0; left:18px; right:18px; height:3px;
+    background:linear-gradient(90deg,transparent,var(--main),transparent); opacity:.5;
+  }
+  .category-tag{
+    display:inline-block; font-size:11px; letter-spacing:.05em; color:var(--main);
+    border:1px solid var(--main-dim); background:color-mix(in srgb, var(--main) 8%, transparent);
+    padding:3px 9px; border-radius:20px; margin-bottom:8px;
+  }
+  .case-title{font-size:15px; font-weight:700; margin:0 0 10px; color:var(--ink);}
+  .case-text{font-size:15px; color:var(--ink); margin:0 0 14px;}
+  .case-text .term{
+    color:var(--amber, #ffb454); border-bottom:1px dashed var(--amber, #ffb454);
+    cursor:pointer; padding:0 1px; transition:background .15s;
+  }
+  .case-text .term:hover, .case-text .term.active{ background:rgba(255,180,84,.15); border-radius:3px; }
+  .question-line{ font-size:14px; font-weight:700; color:var(--ink); border-top:1px dashed var(--line); padding-top:12px; margin:0; }
+
+  /* ---------- 用語分析パネル ---------- */
+  .term-panel{
+    background:var(--panel2); border:1px solid var(--main-dim); border-radius:14px; padding:0;
+    max-height:0; overflow:hidden; opacity:0;
+    transition:max-height .35s ease, opacity .3s ease, margin .35s ease; margin-bottom:0;
+  }
+  .term-panel.open{ max-height:380px; opacity:1; margin-bottom:14px; }
+  .term-panel-inner{padding:14px 16px;}
+  .term-head{display:flex; align-items:baseline; gap:8px; margin-bottom:4px;}
+  .term-name{font-size:16px; font-weight:700; color:var(--main);}
+  .term-reading{font-size:11px; color:var(--ink-dim);}
+  .term-plain{font-size:13.5px; color:var(--ink); margin:6px 0 10px;}
+  .term-core-label{font-size:10.5px; color:var(--ink-dim); letter-spacing:.08em; margin-bottom:6px;}
+  .term-core{font-size:13px; color:var(--ink); margin:0 0 12px;}
+
+  .device{ display:flex; align-items:center; gap:14px; background:var(--bg); border-radius:10px; padding:12px; border:1px solid var(--line); }
+  .device-caption{font-size:12px; color:var(--ink-dim);}
+  .generic-dot{ width:16px; height:16px; border-radius:50%; background:var(--main); flex-shrink:0; box-shadow:0 0 10px 2px color-mix(in srgb, var(--main) 50%, transparent); }
+
+  /* ---------- 権利関係（r-）装置 ---------- */
+  .r-lamp-bulb{ width:28px; height:28px; border-radius:50%; background:#1a2a36; border:2px solid #2c4256; flex-shrink:0; transition:all .3s; }
+  .r-lamp-bulb.on{ background:radial-gradient(circle, #fff6d8, var(--amber) 60%); box-shadow:0 0 18px 4px rgba(255,180,84,.6); border-color:var(--amber); }
+  .r-gate-bar{ width:60px; height:10px; border-radius:4px; background:var(--danger); flex-shrink:0; transition:all .3s; }
+  .r-gate-bar.unlocked{ background:var(--ok); transform:rotate(-65deg) translateX(-8px); }
+  .r-timer-ring{ width:30px; height:30px; border-radius:50%; border:3px solid #2c4256; border-top-color:var(--amber); flex-shrink:0; animation:spin 2.4s linear infinite; }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .r-tag-chip{ width:34px; height:22px; border-radius:5px; background:linear-gradient(135deg,#3a2a16,var(--amber)); flex-shrink:0; }
+  .r-magnet-pair{display:flex; gap:4px; flex-shrink:0;}
+  .r-magnet-pair div{width:14px; height:26px; border-radius:3px; background:var(--main);}
+
+  /* ---------- 宅建業法（g-）装置 ---------- */
+  .g-signal-set{display:flex; gap:4px; flex-shrink:0;}
+  .g-signal-dot{width:14px;height:14px;border-radius:50%; background:#2c2c16; border:1px solid #3a3a22;}
+  .g-signal-dot.red{background:var(--danger);} .g-signal-dot.amber{background:var(--amber, var(--main));} .g-signal-dot.green{background:var(--ok);}
+  .g-cam-icon{ width:26px; height:20px; border-radius:5px; flex-shrink:0; background:#2c2c16; border:2px solid #3a3a22; position:relative; }
+  .g-cam-icon::after{ content:""; position:absolute; right:-6px; top:4px; width:8px; height:8px; border-radius:50%; background:#3a3a22; }
+  .g-cam-icon.single::after{background:var(--main);}
+  .g-cam-icon.full{border-color:var(--main); background:color-mix(in srgb, var(--main) 25%, transparent);}
+  .g-cam-icon.full::after{background:var(--main); box-shadow:0 0 6px 1px var(--main);}
+  .g-gauge-bar{ width:70px; height:10px; border-radius:4px; flex-shrink:0; background:#2c2c16; position:relative; overflow:hidden; }
+  .g-gauge-fill{height:100%; background:var(--ok);} .g-gauge-fill.over{background:var(--danger);}
+  .g-badge-shield{ width:24px; height:28px; flex-shrink:0; background:var(--main); border-radius:4px 4px 50% 50%; display:flex; align-items:center; justify-content:center; font-size:13px; color:#1a1404; font-weight:700; }
+  .g-lock-icon{ width:22px; height:22px; border-radius:5px; flex-shrink:0; background:#2c2c16; border:2px solid var(--danger); position:relative; }
+  .g-lock-icon::after{ content:""; position:absolute; left:6px; top:-6px; width:8px; height:8px; border:2px solid var(--danger); border-bottom:none; border-radius:6px 6px 0 0; }
+  .g-stamp-circle{ width:26px; height:26px; border-radius:50%; flex-shrink:0; border:2px solid var(--ok); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--ok); font-weight:700; }
+
+  /* ---------- 法令上の制限（h-）装置 ---------- */
+  .h-ruler-bar{ width:64px; height:14px; border-radius:3px; flex-shrink:0; background:repeating-linear-gradient(90deg, var(--amber) 0 2px, #2a2210 2px 8px); border:1px solid var(--amber); }
+  .h-ruler-bar.short{width:36px;}
+  .h-gauge-block{ width:70px; height:14px; border-radius:4px; flex-shrink:0; background:var(--panel2); border:1px solid var(--line); overflow:hidden; }
+  .h-gauge-fill{height:100%; background:var(--main);} .h-gauge-fill.over{background:var(--danger);} .h-gauge-fill.unlocked{background:var(--ok);}
+  .h-footprint-box{ width:30px; height:30px; border-radius:4px; flex-shrink:0; background:var(--panel2); border:1px solid var(--line); position:relative; }
+  .h-footprint-box .fill{ position:absolute; left:0; bottom:0; width:100%; background:var(--main); }
+  .h-zone-grid{display:flex; gap:2px; flex-shrink:0;}
+  .h-zone-cell{width:13px; height:22px; border-radius:2px; background:var(--line);}
+  .h-zone-cell.active{background:var(--ok);} .h-zone-cell.restricted{background:var(--danger);} .h-zone-cell.fireproof{background:var(--amber);}
+  .h-gate-icon{ width:30px; height:24px; border-radius:4px; flex-shrink:0; border:2px solid var(--line); position:relative; background:var(--panel2); }
+  .h-gate-icon::after{ content:""; position:absolute; left:2px; top:2px; bottom:2px; width:3px; background:var(--danger); }
+  .h-gate-icon.open::after{background:var(--ok); left:auto; right:2px;}
+  .h-permit-tag{ width:28px; height:20px; border-radius:3px; flex-shrink:0; background:linear-gradient(135deg,var(--main-dim),var(--main)); }
+
+  /* ---------- 税・その他（z-）装置 ---------- */
+  .z-stamp-mark{ width:28px; height:28px; border-radius:50%; flex-shrink:0; border:2px solid var(--ok); display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--ok); font-weight:700; }
+  .z-stamp-mark.exempt{border-color:var(--ink-dim); color:var(--ink-dim);}
+  .z-calendar-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:2px; flex-shrink:0; width:70px;}
+  .z-cal-cell{width:8px;height:8px;border-radius:1px;background:var(--line);}
+  .z-cal-cell.marked{background:var(--main); box-shadow:0 0 4px var(--main);}
+  .z-calc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:3px; flex-shrink:0; width:48px;}
+  .z-calc-btn{width:13px;height:13px;border-radius:2px;background:var(--line);}
+  .z-calc-btn.strong{background:var(--main);} .z-calc-btn.weak{background:var(--main-dim);}
+  .z-rate-gauge{width:64px; height:12px; border-radius:4px; flex-shrink:0; background:var(--panel2); overflow:hidden;}
+  .z-rate-fill{height:100%; background:var(--main);} .z-rate-fill.high{background:var(--danger);}
+  .z-coupon-tag{ width:54px; height:26px; border:1.5px dashed var(--main); border-radius:5px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--main); font-weight:700; }
+  .z-coupon-tag.expired{border-color:var(--danger); color:var(--danger);}
+
+  /* ---------- 選択肢 ---------- */
+  .choices{display:flex; flex-direction:column; gap:10px; margin-bottom:14px;}
+  .choice-btn{
+    display:flex; align-items:center; gap:12px; text-align:left;
+    background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+    color:var(--ink); font-size:13.5px; cursor:pointer; width:100%; transition:all .15s; font-family:inherit;
+  }
+  .choice-btn:hover{border-color:var(--main);}
+  .choice-lever{ width:18px; height:30px; border-radius:9px; background:var(--bg); border:1px solid var(--line); flex-shrink:0; position:relative; }
+  .choice-lever::after{ content:""; position:absolute; left:2px; top:2px; width:12px; height:12px; border-radius:50%; background:var(--ink-dim); transition:transform .2s; }
+  .choice-btn.selected{border-color:var(--main); background:color-mix(in srgb, var(--main) 10%, transparent);}
+  .choice-btn.selected .choice-lever::after{ transform:translateY(14px); background:var(--main); }
+  .choice-btn.correct{border-color:var(--ok); background:color-mix(in srgb, var(--ok) 12%, transparent);}
+  .choice-btn.correct .choice-lever::after{background:var(--ok); transform:translateY(14px);}
+  .choice-btn.wrong{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 12%, transparent);}
+  .choice-btn.wrong .choice-lever::after{background:var(--danger); transform:translateY(14px);}
+  .choice-btn:disabled{cursor:default;}
+  .choice-btn:disabled:hover{background:inherit;}
+
+  /* ---------- 実行ボタン ---------- */
+  .run-btn{
+    display:block; width:100%;
+    background:linear-gradient(180deg, color-mix(in srgb, var(--main) 70%, white), var(--main-dim));
+    color:#06101e; font-weight:700; font-size:14.5px; border:none; border-radius:12px; padding:14px;
+    cursor:pointer; letter-spacing:.05em; transition:transform .1s;
+  }
+  .run-btn:active{transform:scale(.98);}
+  .run-btn:disabled{ background:var(--line); color:var(--ink-dim); cursor:not-allowed; }
+
+  /* ---------- 判定結果パネル ---------- */
+  .result-panel{ border-radius:14px; padding:16px; margin-top:14px; border:1px solid var(--line); background:var(--panel2); display:none; }
+  .result-panel.show{display:block;}
+  .result-panel.ok{border-color:var(--ok); background:color-mix(in srgb, var(--ok) 8%, var(--panel2));}
+  .result-panel.no{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--panel2));}
+  .result-flag{ display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:13px; margin-bottom:8px; }
+  .result-flag.ok-text{color:var(--ok);} .result-flag.no-text{color:var(--danger);}
+  .result-dot{width:9px; height:9px; border-radius:50%;}
+  .ok-text .result-dot{background:var(--ok); box-shadow:0 0 8px var(--ok);}
+  .no-text .result-dot{background:var(--danger); box-shadow:0 0 8px var(--danger);}
+  .explanation{font-size:13.5px; color:var(--ink); margin:0 0 12px;}
+  .related-terms{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .related-chip{
+    font-size:11.5px; color:var(--main); border:1px solid var(--main-dim);
+    background:color-mix(in srgb, var(--main) 8%, transparent); padding:3px 9px; border-radius:20px; cursor:pointer;
+  }
+  .next-btn{ width:100%; background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:12px; padding:12px; font-size:13.5px; cursor:pointer; font-family:inherit; }
+  .next-btn:hover{border-color:var(--main);}
+
+  /* ---------- 分岐実験ラボ ---------- */
+  .branch-panel{ display:none; margin-top:14px; background:var(--panel2); border:1px solid var(--main-dim); border-radius:14px; padding:16px; }
+  .branch-panel.show{display:block;}
+  .branch-head{ font-size:13px; font-weight:700; color:var(--main); margin-bottom:4px; }
+  .branch-intro{font-size:12.5px; color:var(--ink-dim); margin:0 0 14px;}
+  .branch-lever-group{margin-bottom:12px;}
+  .branch-lever-label{font-size:12px; color:var(--ink-dim); margin-bottom:6px;}
+  .pill-group{display:flex; gap:6px; flex-wrap:wrap;}
+  .pill-btn{
+    flex:1; min-width:100px; background:var(--bg); border:1px solid var(--line);
+    color:var(--ink-dim); font-size:12.5px; padding:9px 10px; border-radius:9px;
+    cursor:pointer; font-family:inherit; transition:all .15s;
+  }
+  .pill-btn:hover{border-color:var(--main);}
+  .pill-btn.active{
+    background:color-mix(in srgb, var(--main) 16%, transparent); border-color:var(--main); color:var(--ink);
+  }
+  .branch-result{ margin-top:14px; padding:13px 14px; border-radius:11px; border:1px solid var(--line); background:var(--bg); transition:border-color .25s, background .25s; }
+  .branch-result.win{border-color:var(--ok); background:color-mix(in srgb, var(--ok) 8%, var(--bg));}
+  .branch-result.lose{border-color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--bg));}
+  .branch-result.contest{border-color:var(--amber); background:color-mix(in srgb, var(--amber) 8%, var(--bg));}
+  .branch-flag{font-size:13px; font-weight:700; margin-bottom:6px;}
+  .branch-result.win .branch-flag{color:var(--ok);}
+  .branch-result.lose .branch-flag{color:var(--danger);}
+  .branch-result.contest .branch-flag{color:var(--amber);}
+  .branch-reason{font-size:12.5px; color:var(--ink); margin:0;}
+
+  /* ---------- 問題選択リスト ---------- */
+  .list-item{
+    display:flex; align-items:center; gap:12px; background:var(--panel2); border:1px solid var(--line);
+    border-radius:13px; padding:13px 14px; margin-bottom:9px; cursor:pointer; transition:all .15s;
+  }
+  .list-item:hover{border-color:var(--main);}
+  .list-badge{
+    width:30px; height:30px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:14px; background:var(--line); border:1px solid var(--line);
+  }
+  .list-badge.correct{background:color-mix(in srgb, var(--ok) 18%, transparent); border-color:var(--ok);}
+  .list-badge.wrong{background:color-mix(in srgb, var(--danger) 18%, transparent); border-color:var(--danger);}
+  .list-body{flex:1; min-width:0;}
+  .list-title{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .list-sub{font-size:11px; color:var(--ink-dim); margin-top:2px;}
+
+  /* ---------- 用語集 ---------- */
+  .search-box{
+    width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:11px;
+    padding:11px 14px; color:var(--ink); font-size:13.5px; font-family:inherit; margin-bottom:12px;
+  }
+  .search-box::placeholder{color:var(--ink-dim);}
+  .glossary-item{ background:var(--panel2); border:1px solid var(--line); border-radius:13px; padding:12px 14px; margin-bottom:8px; cursor:pointer; transition:all .15s; }
+  .glossary-item:hover{border-color:var(--main);}
+  .glossary-row{display:flex; align-items:center; gap:8px;}
+  .glossary-name{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .glossary-reading{font-size:10.5px; color:var(--ink-dim);}
+  .glossary-seen{margin-left:auto; font-size:11px; color:var(--ok);}
+  .glossary-detail{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); display:none; }
+  .glossary-detail.open{display:block;}
+
+  /* ---------- 完了画面 ---------- */
+  .done-panel{text-align:center; padding:30px 16px;}
+  .done-score{font-size:38px; font-weight:700; color:var(--main); margin:6px 0;}
+  .done-streak{font-size:12.5px; color:var(--amber); margin-bottom:4px;}
+  .done-actions{display:flex; flex-direction:column; gap:10px; margin-top:16px;}
+  .restart-btn{
+    background:linear-gradient(180deg, color-mix(in srgb, var(--main) 70%, white), var(--main-dim));
+    color:#06101e; font-weight:700; border:none; border-radius:12px; padding:12px 22px; cursor:pointer; font-size:13.5px;
+  }
+  .ghost-btn{ background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:12px; padding:12px 22px; cursor:pointer; font-size:13.5px; font-family:inherit; }
+  .ghost-btn:hover{border-color:var(--main);}
+
+  footer{text-align:center; font-size:11px; color:var(--ink-dim); margin-top:18px;}
+
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+
+<div class="lab">
+
+  <header>
+    <div class="lab-title"><span id="headerIcon">🏗️</span> <b id="headerName">宅建 統合ラボ</b> <span id="headerSub" style="display:none;"></span></div>
+    <div class="header-btns">
+      <button class="nav-btn" id="fieldBackBtn" style="display:none;">⬅ 分野選択</button>
+      <button class="nav-btn" id="homeBtn" style="display:none;">🏠 タイトル</button>
+    </div>
+    <div class="meter" id="headerMeter" style="display:none;">
+      <div>問題 <b id="metaIndex">1</b>/<span id="metaTotal">5</span></div>
+      <div>正答 <b id="metaScore">0</b></div>
+    </div>
+  </header>
+
+  <!-- ================= 分野選択画面（最上位） ================= -->
+  <section class="screen show" id="screenFieldSelect">
+    <div class="field-hero">
+      <div class="field-hero-emoji">🏗️</div>
+      <p class="field-hero-title">宅建 統合ラボ</p>
+      <p class="field-hero-sub">分野を選んで、ケーススタディで判断の分岐を試そう</p>
+    </div>
+    <div class="field-grid" id="fieldGrid"></div>
+  </section>
+
+  <!-- ================= タイトル画面（分野内） ================= -->
+  <section class="screen" id="screenTitle">
+    <div class="hero">
+      <div class="hero-emoji" id="heroEmoji">⚗️</div>
+      <p class="hero-title" id="heroTitle"></p>
+      <p class="hero-sub" id="heroSub"></p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" id="statRate">0%</div><div class="stat-label">正答率</div></div>
+      <div class="stat-card"><div class="stat-num" id="statStreak">0</div><div class="stat-label">ベストストリーク</div></div>
+      <div class="stat-card"><div class="stat-num" id="statTerms">0/0</div><div class="stat-label">用語集 閲覧</div></div>
+    </div>
+
+    <div class="menu-list">
+      <button class="menu-btn primary" id="menuStart">
+        <span class="menu-icon">▶</span>
+        <span><span class="menu-text-title">最初から挑戦する</span><br>
+        <span class="menu-text-sub">全5ケースを順番に進める</span></span>
+      </button>
+      <button class="menu-btn" id="menuRandom">
+        <span class="menu-icon">🎲</span>
+        <span><span class="menu-text-title">ランダム出題</span><br>
+        <span class="menu-text-sub">出題順をシャッフルして挑戦</span></span>
+      </button>
+      <button class="menu-btn" id="menuList">
+        <span class="menu-icon">📋</span>
+        <span><span class="menu-text-title">問題を選ぶ</span><br>
+        <span class="menu-text-sub">ケースを1つ選んで集中練習</span></span>
+      </button>
+      <button class="menu-btn" id="menuGlossary">
+        <span class="menu-icon">📖</span>
+        <span><span class="menu-text-title">用語集</span><br>
+        <span class="menu-text-sub">コアイメージで法律用語を一覧</span></span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= 問題選択リスト ================= -->
+  <section class="screen" id="screenList">
+    <p class="branch-intro" style="margin-bottom:12px;">ケースを選んでその場から挑戦できます。</p>
+    <div id="listItems"></div>
+  </section>
+
+  <!-- ================= 用語集 ================= -->
+  <section class="screen" id="screenGlossary">
+    <input class="search-box" id="glossarySearch" placeholder="🔍 用語を検索">
+    <div id="glossaryItems"></div>
+  </section>
+
+  <!-- ================= プレイ画面 ================= -->
+  <section class="screen" id="screenPlay">
+    <div class="tube-wrap">
+      <div class="tube"><div class="tube-fill" id="progressFill"></div></div>
+      <div class="tube-label" id="progressLabel">0%</div>
+    </div>
+
+    <div class="case-panel" id="casePanel">
+      <span class="category-tag" id="caseCategory">分野</span>
+      <p class="case-title" id="caseTitle">タイトル</p>
+      <p class="case-text" id="caseText">事例文</p>
+      <p class="question-line" id="questionLine">設問</p>
+    </div>
+
+    <div class="term-panel" id="termPanel">
+      <div class="term-panel-inner" id="termPanelInner"></div>
+    </div>
+
+    <div class="choices" id="choicesBox"></div>
+
+    <button class="run-btn" id="runBtn" disabled></button>
+
+    <div class="result-panel" id="resultPanel">
+      <div class="result-flag" id="resultFlag"><span class="result-dot"></span><span id="resultFlagText"></span></div>
+      <p class="explanation" id="resultExplanation"></p>
+      <div class="related-terms" id="relatedTerms"></div>
+      <button class="next-btn" id="nextBtn">次のケースへ →</button>
+    </div>
+
+    <div class="branch-panel" id="branchPanel">
+      <div class="branch-head" id="branchHead">🧪 分岐実験ラボ</div>
+      <p class="branch-intro" id="branchIntro"></p>
+      <div class="branch-levers" id="branchLevers"></div>
+      <div class="branch-result" id="branchResult">
+        <p class="branch-flag" id="branchFlag"></p>
+        <p class="branch-reason" id="branchReason"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 完了画面 ================= -->
+  <section class="screen" id="screenDone">
+    <div class="done-panel">
+      <div class="category-tag" id="doneTag">終了</div>
+      <p style="margin:6px 0 0; color:var(--ink-dim); font-size:13px;">正答率</p>
+      <div class="done-score" id="doneScore">0 / 0</div>
+      <p class="done-streak" id="doneStreak"></p>
+      <p style="font-size:13px; color:var(--ink-dim);" id="doneComment"></p>
+      <div class="done-actions" id="doneActions"></div>
+    </div>
+  </section>
+
+  <footer id="pageFooter">分野を選んでケーススタディを始めましょう。</footer>
+</div>
+
+<script src="fields/rights/terms.js"></script>
+<script src="fields/rights/questions.js"></script>
+<script src="fields/gyoho/terms.js"></script>
+<script src="fields/gyoho/questions.js"></script>
+<script src="fields/houserei/terms.js"></script>
+<script src="fields/houserei/questions.js"></script>
+<script src="fields/zeimu/terms.js"></script>
+<script src="fields/zeimu/questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
