@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 16, next_html: "17",
+        title: "【重要用語16】復代理（復代理人の立ち位置と本人の関係）",
+        base_statement: "Aから土地売却の代理権を与えられたBが、やむを得ない事由により、さらに別のDを「復代理人」として選任した。Dが相手方Cと契約を結ぶ際、<span class=\"judge-underline\">復代理人Dは、だれの代理人として</span>Cに名乗る（顕名する）べきか。",
+        tokens: ["代理人が選任した", "復代理人Dは、", "代理人Bの代理人ではなく、", "本人Aの代理人", "として行為を", "行わなければ", "ならない。"],
+        
+        dictionary: [
+            { term: "16. 復代理（ふくだいり）", definition: "代理人Bが、「自分一人じゃ手が回らないから、代わりにやってくれる助っ人Dをスカウトしよう」と選ぶシステム。" },
+            { term: "顕名（けんめい）", definition: "「私は〇〇の代理人です」と名乗ること。これをしないと、自分自身の売買契約だと勘違いされてしまいます。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：復代理人の代理対象 × 本人の代理（本問の正解）", text: "スカウトされた助っ人D。取引相手のCに対しては「誰の代理人」として振る舞うべき？", sentence_override: "民法第102条の2により、復代理人は【本人を代理する】。したがって、Bの代理人ではなく【本人Aの代理人】として名乗らなければならない。", watershed: "選んだのはBだけど、Dは『本人Aの直属の代理人』になる！", winner: "本人Aの代理人", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『選んでくれた代理人Bの代理人』と名乗ったら？", text: "Dが取引相手Cに「私は代理人Bさんの代理人です！」と名乗ってハンコを押した場合は？", sentence_override: "復代理人はBの身代わりではなく本人直属。Bの代理人と名乗る記述は法律上完全に【誤り】となる。", watershed: "「代理人の代理人」という言葉は、宅建試験の鉄板ひっかけワード！", winner: "ひっかけ文章", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：復代理人Dが仕事でミスをして損害を出したら？", text: "復代理人Dがミスをして損害を出した場合、Dは本人Aに対して直接責任を負う？", sentence_override: "復代理人は本人Aに対して、代理人と同一の権利を有し、義務を負う。本人Aに直接謝罪・賠償の義務がある。", watershed: "本人直属だからこそ、本人Aに対して『直接』責任を負う関係！", winner: "本人Aへ直接責任を負う", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『任意代理人はいつでも自由に復代理人を選べる』の罠", text: "頼まれた「任意代理人B」が、本人の許可なくいつでも勝手に復代理人を選べるという罠。", sentence_override: "任意代理人は、本人の許諾があるか【または、やむを得ない事由があるとき】でなければ選任できないため誤り。", watershed: "任意代理のスカウトは制限あり！（ただし法定代理ならいつでも自由！）", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "復代理人の最大の急所は**「復代理人は『本人』の代理人である（代理人Bの代理人ではない）」**というフレーズです！選んだのはBですが、ひとたび選ばれたDは本人Aと直結するエージェントになります。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(代理人が選任した|復代理人Dは|本人Aの代理人)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(ならない|おそれがある)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 3) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

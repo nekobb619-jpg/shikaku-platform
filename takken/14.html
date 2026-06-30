@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 14, next_html: "15",
+        title: "【重要用語14】無権代理（本人の追認拒絶と効果の帰属）",
+        base_statement: "Aの子供であるBが、Aから何の頼み（代理権の授与）も受けていないのに、勝手にAの代理人と名乗ってA所有の不動産をCに売却した。<span class=\"judge-underline\">本人Aがこの売買をハッキリと拒絶（追認拒絶）した場合</span>、この売買契約の効果は本人Aに及ぶか。",
+        tokens: ["代理権のない者が", "勝手に行った無権代理は、", "本人が追認を拒絶した", "ときには、", "本人に対して", "その効力を", "生じない。"],
+        
+        dictionary: [
+            { term: "14. 無権代理（むけんだいり）", definition: "代理権が全くないのに、勝手に「私は〇〇さんの代理人です！」と偽って契約を結んでしまう暴挙を指します。" },
+            { term: "追認と追認拒絶（ついにんきょぜつ）", definition: "本人が「まぁいいよ」と認めるのが追認（契約成立）。「ナシだ！」と突っぱねるのが追認拒絶（無効確定）です。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：無権代理 × 本人が追認拒絶（本問の正解）", text: "勝手に売られた親A。怒って「そんな契約は認めん！」と追認を拒絶したストーリー。", sentence_override: "民法第113条により、無権代理は本人が追認しない限り本人に効果は及ばない。追認拒絶により【契約の効果は本人に絶対に及ばない（無効確定）】。", watershed: "本人が突っぱねた（追認拒絶）なら、本人は100%安全（効果不帰属）！", winner: "本人Aの勝利", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：本人が「まぁいいか」と追認した場合は？", text: "勝手に土地を売られたが、親Aが「オッケー、認めるよ」と言った場合は？", sentence_override: "本人が追認したときは、契約の時にさかのぼって【最初から有効な代理行為だったもの】として扱われ、本人に効果が帰属する。", watershed: "本人が「追認」を出したら、契約日にタイムスリップして最初から有効！", winner: "契約有効", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：相手方Cが「お前の子供だろ！」と怒ってBを追及したら？", text: "追認拒絶されて土地が手に入らなくなった相手方C。勝手に売ったBに責任をとらせることはできる？", sentence_override: "相手方Cが善意無過失であれば、無権代理人Bに対して【履行の請求、または損害賠償の請求をすることができる】（無権代理人の責任）。", watershed: "本人がダメでも、Cは勝手な真似をした無権代理人Bに直接責任を追及できる！", winner: "Cの勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『無権代理契約は結んだ瞬間に問答無用で完全無効』の罠", text: "「代理権のない者が結んだ契約は、本人の意思に関わらず、結んだ瞬間に絶対的無効として確定する」という罠。", sentence_override: "本人が後から「追認」して有効化できる「流動的無効」な状態であるため、結んだ瞬間に無効確定とする記述は【誤り】となる。", watershed: "無権代理は死んだ状態ではない！本人の『追認』で生き返る！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "無権代理（勝手な代理）は、原則として本人には一切効果が及びません。本人が「追認拒絶」を出して完全に拒否すれば、本人Aは土地を奪われることなく100%守られます！ただし、本人が「追認」すれば生き返ること、また騙された相手方Cは勝手な真似をした無権代理人Bに直接責任をとらせることができる点をセットで押さえましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(代理権のない者が|無権代理は|本人が追認を拒絶した)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(生じない|生じる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 3) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

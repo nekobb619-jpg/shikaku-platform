@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 30, next_html: "31",
+        title: "【重要用語30】悪意の第三者・再定義（虚偽表示の転得者と絶対的構成の罠）",
+        base_statement: "Aは債権者からの差押えを逃れるため、Bとグルになって嘘の土地売買（通謀虚偽表示）をし、名義をBに移した。Bは事情を知らないC（善意）に土地を転売し、Cはさらに事情をすべて知っているD（悪意）に転売した。<span class=\"judge-underline\">裏の事情を知っている悪意の転得者Dに対して</span>、元の所有者Aは無効を主張して土地を取り戻すことができるか。",
+        tokens: ["通謀虚偽表示において", "一度でも善意の第三者Cが", "間に入った場合には、", "その後の転得者Dが", "悪意であったとしても、", "Aは無効を対抗して", "土地を取り戻すことが", "できない。"],
+        
+        dictionary: [
+            { term: "30. 悪意の転得者（あくいのてんとくしゃ）", definition: "善意の第三者から、さらにその財産を買い受けた（転売された）人のことで、裏の事情（A-B間が嘘であること）を「知っている」状態を指します。" },
+            { term: "絶対的構成（ぜったいてきこうせい）", definition: "法律上の安全性のためのルール。一度クリーンな善意の人が現れて権利が完全に確定したら、その後に現れた人は悪意であってもその確定した権利を引き継ぐことができるという法理です。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：善意の第三者 ➔ 悪意の転得者（本問の正解）", text: "嘘の売買のあと、善意のCが挟まり、最後に悪意のDが買い受けた。AはDから回収できる？", sentence_override: "民法第94条2項の判例。善意のCが現れた時点でAの負けが確定し、土地はCの物としてクリーンになります。Dが悪意でもそのクリーンな権利を丸ごと引き継ぐため、AはDから【土地を取り戻すことができない】。", watershed: "一度「善意」を通過したら権利は完全に白！悪意のDでもAは倒せない！", winner: "転得者Dの勝ち（Aの負け）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【逆転】悪意の第三者 ➔ 善意の転得者だったら？", text: "Bが最初に転売したCは事情を知っていた（悪意）が、Cが次に売ったDは何も知らない（善意）ピュアな人だったら？", sentence_override: "民法94条2項の直接適用. 途中のCが悪意であっても、最終的なDが「善意」であれば保護される。よってAはDから【土地を取り戻せなくなる】。", watershed: "途中に悪意がいても、最後に「善意」のDが現れたら、そこでAは一発アウト！", winner: "転得者Dの勝ち（Aの負け）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【全員アウト】悪意の第三者 ➔ 悪意の転得者だったら？", text: "Bが売ったCも悪意、そこから買ったDも悪意で、登場人物が全員事情を知っていた場合は？", sentence_override: "善意の人が1人もいないため、誰も保護される余地がない。元の所有者AはDに対して【無効を主張して土地を100%取り戻すことができる】。", watershed: "善意のクリーンバリアが一度も発動しないなら、Aがいつでも無双して回収可能！", winner: "元の所有者Aの勝ち（土地奪還）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『転得者Dが登記を持っていなければAが勝てる』の罠", text: "Cが善意、Dが悪意のケースにおいて、Dがまだ不動産の登記を移していないなら、Aが勝てるという罠。", sentence_override: "善意のCが挟まった時点でAの権利は消滅している。Dの登記の有無に関わらず、AはDに対して無効を【主張できない】ため誤り。", watershed: "Aの負けはCの時点で確定！Dの登記の有無は勝敗に関係なし！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "通謀虚偽表示の第三者保護規定における、最高裁の超重要判例（絶対的構成）です！嘘の売買によって騙された側のAは、事情を知らない「善意のC」が現れた時点で、Cに対して土地を取り戻す権利を永久に失います。権利がクリーンになった後に、たとえ事情を知っている「悪意のD」が買い取ったとしても、DはCの完璧な権利をそのまま引き継ぐため、AはDに対しても無効を主張できません。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(通謀虚偽表示において|一度でも善意の第三者Cが|Aは無効を対抗して)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できない|できる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 2) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

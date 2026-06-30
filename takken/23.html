@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 23, next_html: "24",
+        title: "【重要用語23】時効と登記（時効完成前・完成後の第三者との対抗関係）",
+        base_statement: "A所有の土地をBがずっと占有し、まもなく20年の取得時効が完成しようとしていた。しかし、時効が完成する『前』の18年目の時点で、所有者Aが土地をCに売却してCが登記を移した。その後Bの20年時効が完成した。<span class=\"judge-underline\">時効完成「前」に登記を得たCに対して、時効取得者Bは登記なしで</span>所有権を主張できるか。",
+        tokens: ["時効完成前に現れた", "第三者Cとの関係は、", "当事者（物権変動の承継関係）と", "みなされるため、", "時効取得者Bは", "登記がなくても", "所有権の取得を", "対抗できる。"],
+        
+        dictionary: [
+            { term: "23. 時効と登記（じこうととうき）", definition: "時効のカウントダウンが満了した20年目の瞬間を基準に、「前」のトラブルか「後」のトラブルかで180度ルールが変わります。" },
+            { term: "時効完成前の第三者", definition: "時効が完成するより前の時点で、元の所有者から土地を買い受けて登記をした人のことです。時効の完成を途中で目撃した人とも言えます。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：時効完成【前】に現れた第三者との関係（本問の正解）", text: "Bの占有18年目にCがAから買い受けて登記した。その後Bの20年時効が完成したケース。", sentence_override: "時効完成『前』の第三者Cは、時効によって権利を失う旧所有者Aと同じ当事者（承継関係）として扱われる。よって、BはCに対して登記なしで所有権を主張できます。", watershed: "時効完成「前」の第三者Cは身内（当事者）扱い。よって時効者の登記なし勝利！", winner: "時効取得者Bの勝ち（登記不要）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【最重要対比】時効完成【後】に現れた第三者なら？", text: "Bが20年間占有して時効が完成した。しかし、Bが油断して登記をサボっている間に、元の所有者Aが土地をDに売り飛ばしてDが登記を移してしまったら？", sentence_override: "時効完成『後』の第三者Dとの関係は、Aを起点とした完全な二重譲渡（対抗関係）となります。よって、登記を先にとられたBは負けます。", watershed: "時効完成「後」の第三者Dはライバル（対抗関係）！登記がなければ負ける！", winner: "第三者D의勝ち（登記が必要）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：時効完成【後】の第三者Dに、さらに10年（または20年）粘ったら？", text: "完成後のDに登記を奪われて敗北したB。悔しいのでそこからさらに10年間（または20年間）ずっと占有を平穏に継続し、「第2の時効」を完成させたら？", sentence_override: "新しく現れたDを起点として、再度カウントダウンがスタートします。期間満了すれば、BはDに対して登記なしで勝利できます。", watershed: "時効完成「後」にDが現れても、そこからさらに時効を『再完成』させればBの逆転勝ち！", winner: "時効取得者Bの逆転勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『時効取得した土地の元々の所有者A』から返還請求されたら？", text: "20年使い続けて時効が完成したBに対し、元の所有者Aが「これ俺名義のままだから出ていけ！」と迫ってきたら？", sentence_override: "元の所有者Aは完全なる当事者。Bは当然、登記がなくてもAに100%勝てるため誤りです。", watershed: "元の所有者（当事者）には、何があろうと100%登記なしで勝てる！", winner: "時効取得者Bの勝ち（登記不要）", is_correct_track: false }
+        ],
+        commentary: "時効と登記の仕分けは、宅建本試験の超重要分水嶺です！20年の時効が完成する**「前」**に現れたCは、時効によって土地を奪い取られる元の所有者Aの地位を引き継いだ「当事者（身内）」とみなされます。当事者には登記がなくても勝てるため、Bは**「登記なしでCに勝利」**できます！しかし、時効が完成した**「後」**に現れたDは、ライバル関係（対抗関係）になるため、登記を先にとられたらBの負けになります。「完成前＝登記不要」「完成後＝登記が必要」という時系列を絶対死守しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(時効完成前に現れた|第三者Cとの関係は|時効取得者Bは)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(登記がなくても|対抗できる|対抗できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `
+                <div class="nuance-header">${nu.label}</div>
+                <div class="nav-text">${nu.text}</div>
+                <div class="card-inner-board">
+                    <div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div>
+                    <div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div>
+                    <div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div>
+                </div>`;
+            
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                // 結論バッジのテキストと色のダイナミック書き換え
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 3 || nu.id === 4) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

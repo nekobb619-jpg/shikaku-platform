@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 18, next_html: "19",
+        title: "【重要用語18】条件・期限（停止条件の成就と効力発生タイミングの罠）",
+        base_statement: "AはBに対し、「次の宅建試験に合格したら、このマンションをタダでやる（贈与）」と約束した（停止条件付契約）。Bが見事に試験に合格したとき、<span class=\"judge-underline\">その契約の効力はいつの時点から</span>発生するか。",
+        tokens: ["停止条件付の", "法律行為は、", "条件が成就した", "時点から", "将来に向かって", "その効力を", "生じる。"],
+        
+        dictionary: [
+            { term: "18. 条件・期限", definition: "条件は「合格したら」のように将来発生するか不確実な事実。期限は「来年の4月1日になったら」のように将来必ず発生する事実を指します。" },
+            { term: "停止条件（ていしじょうけん）", definition: "条件がクリアされるまで契約の効果を「ストップ（停止）」させておく条件。クリアした瞬間に効果がスタートします。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：停止条件のクリア × 将来効（本問の正解）", text: "「合格したらあげる」の条件を達成した。効果がスタートするのは合格した日？それとも大昔の約束した日？", sentence_override: "民法第127条1項により、停止条件付法律行為は条件が成就した【時から】効力を生じる（将来効）。契約日にさかのぼるわけではない。", watershed: "条件クリアは『達成したその瞬間（将来効）』から効果スタート！", winner: "条件成就の時から", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『契約の時にさかのぼって効力を生じる』？", text: "選択肢が「条件が成就したときは、契約を結んだ日にさかのぼって（遡及して）効力を生じる」と迫ってきたパターン。", sentence_override: "取消の遡及効などと混同させる超典型ひっかけ。原則として過去にはタイムスリップしないため、この記述は【誤り】となる。", watershed: "原則はタイムスリップ（遡及）しない！合格した日から有効！", winner: "ひっかけ文章", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：特約で「さかのぼらせる」とあらかじめ決めていたら？", text: "AとBが「もし合格したら、お祝いとして約束した日にさかのぼって家をあげたことにしよう」とあらかじめ特約を結んでいたら？", sentence_override: "民法第127条3項の例外規定。当事者がさかのぼらせる意思を表示していたときは【その特約の意思に従う（遡及させられる）】。", watershed: "当事者の「特約（約束）」があれば、例外的に過去へさかのぼれる！", winner: "特約優先", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【対比】「期限（4月1日になったら）」の到着効果は？", text: "条件ではなく、「来年の4月1日になったら家をあげる（始期付契約）」という期限のストーリーだったら？", sentence_override: "期限は100%さかのぼることが不可能。どんな特約があっても期限が到来した【時から】しか効果は発生しない。", watershed: "期限の到来だけは、特約があっても絶対に過去へさかのぼれない！", winner: "到来した時から", is_correct_track: false }
+        ],
+        commentary: "「条件」がクリアされたときの効果は、原則として**「条件が達成されたその瞬間から将来に向かって（将来効）」**発生します！過去の契約日までさかのぼるというひっかけ問題が非常に多いので注意しましょう。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(停止条件付の|条件が成就した|その効力を)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(時点から|将来に向かって|生じる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 3 || nu.id === 4) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+
+
+

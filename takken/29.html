@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 29, next_html: "30",
+        title: "【重要用語29】連帯債務（法改正による相殺権行使と絶対効の範囲）",
+        base_statement: "AとCは、Bに対して300万円の連帯債務を负っている。連帯債務者の1人であるCは、債権者Bに対して個人的に300万円の反対債権（貸付金）を持っているが、Cは相殺を拒んでいる。このとき、<span class=\"judge-underline\">もう1人の連帯債務者Aは、Cの持つ相殺権を悪用して</span>、Cの負担部分（150万円）の限度でBに対して支払いを拒絶することができるか。",
+        tokens: ["連帯債務者の1人が", "相殺を援用しない間は、", "他の連帯債務者Aは、", "その債務者の負担部分の", "限度においてのみ、", "債権者Bに対して", "履行を拒絶することが", "できる。"],
+        
+        dictionary: [
+            { term: "29. 連帯債務（れんたいさいむ）", definition: "複数の債務者が、それぞれ独立して債務全額（300万円なら全員が300万円ずつ）の返済義務を負う契約です。1人が全額返せば全員の義務が消滅します。" },
+            { term: "相殺の援用（そうさいのえんよう）", definition: "お互いにお金を貸し合っている状態のとき、「チャラにしよう！」と宣言して相殺を実行することです。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：他人の相殺権 × 負担部分の履行拒絶（本問の正解）", text: "相殺できるCがチャラにしようとしない。もう1人のAがCの枠を勝手に使って、自分の支払いを拒絶できる？", sentence_override: "民法第439条2項の法改正ルール。Cが相殺しない間、AはCの負担部分の限度（150万円分）に限り、Bからの請求に対して【履行を拒絶することができる】。自分で勝手に相殺（チャラに）することはできません。", watershed: "他人の相殺権を勝手に実行はできないが、『その枠の分だけ支払いを突っぱねる（拒絶）』ことはOK！", winner: "連帯債務者Aの勝ち（一部拒絶可能）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【法改正ひっかけ】Aが勝手にCの相殺権を「実行」してチャラにできる？", text: "AがBに対して「Cが持ってる300万円の貸付金を使って、俺たちの債務をチャラにするわ！」と相殺を宣言したら？", sentence_override: "改正前は他人の権利での相殺実行が認められていたが、法改正により禁止された。Aが勝手にCの相殺権を【実行することはできない】ため誤り。", watershed: "法改正の最大地雷！他人の権利で勝手にチャラ（相殺実行）にするのは絶対✕！", winner: "債権者Bの勝ち（相殺実行は不可）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【絶対効】もしCが自分で「相殺」を実行してチャラにしたら？", text: "Aではなく、権利を持っているC本人が「Bへの借金と、Bへの貸付金を相殺してチャラにする！」と宣言した場合は？", sentence_override: "Cが自分自身で相殺した場合は絶対効。相殺によって消滅した金額（300万円）の分だけ、もう1人のAの借金も【自動的にすべて消滅する】。", watershed: "本人が「相殺」「弁済」したなら、その効果は全員にハッピーに飛び火する（絶対効）！", winner: "連帯債務者全員の借金消滅", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【対比：連帯保証】もしCが「連帯保証人」だったら？", text: "Aが主債務者、Cが連帯保証人で、CがBに反対債権を持っていた場合、主債務者AはCの権利で相殺を主張できるか？", sentence_override: "保証の付従性による例外規定。主債務者Aは、連帯保証人Cが相殺を主張できる枠の分だけ、Bへの支払いを【全額でも拒絶することができる】ため本問とはルールが異なる。", watershed: "連帯債務は「負担部分まで」、連帯保証は「全額でも」拒絶できるという強烈な格差！", winner: "主債務者Aの勝ち", is_correct_track: false }
+        ],
+        commentary: "連帯債務の法改正における超重要テーマです！連帯債務者の1人（C）が相殺できる権利を持っているのに使おうとしない場合、もう1人のAは、Cが持っている権利を勝手に実行して借金をチャラにすることはできません（他人の財産権の侵害になるため）。ただし、Bから「300万円払え」と攻め立てられたときに、**「Cの負担部分（150万円）の限度で支払いを拒絶する（突っぱねる）」**という防御盾としての使い方は認められています！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(連帯債務者の1人が|他の連帯債務者Aは|履行を拒絶することが)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できる|できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

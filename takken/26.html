@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 26, next_html: "27",
+        title: "【重要用語26】根抵当権（元本確定前における債権の範囲の変更手続き）",
+        base_statement: "A企業とB銀行は、何回も貸し借りを繰り返すために土地に根抵当権を設定した。まだ上限枠が固定される前の段階（元本確定前）において、担保する取引ジャンル（債権の範囲）を「銀行取引」から「手形割引取引」に変更しようと考えている。この土地に別の後順位抵当権者Cがいる場合、<span class=\"judge-underline\">Cの承諾を得ることなく、AとBの合意だけで</span>変更することができるか。",
+        tokens: ["根抵当権の元本確定前において、", "担保すべき債権の範囲を", "変更する場合、", "後順位抵当権者などの", "第三者がいるときであっても、", "その承諾を", "得る必要は", "ない。"],
+        
+        dictionary: [
+            { term: "26. 根抵当権（ねていとうけん）", definition: "「極度額（上限枠）」を設定し、その枠の中であれば、何度もお金を貸したり返したりを繰り返すことができる企業向けの特殊な抵当権です。" },
+            { term: "元本確定（がんぽんかくてい）", definition: "「ここまでの貸し借りで、合計〇〇千万円に借金を固定します！」と枠を締め切ること。確定前は中身（債権の範囲や債務者）を自由に入れ替えられますが、確定後は普通の抵当権に変身します。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：元本確定前 × 債権の範囲の変更（本問の正解）", text: "締め切り前（元本確定前）に、担保する中身のルールを変更したい。後順位のライバルCの許可はいる？", sentence_override: "民法第398条の4第2項のルール。元本確定前であれば、担保すべき債権の範囲の変更について、利害関係を有する後順位のCの【承諾を得る必要はない】（設定者と根抵当権者の合意だけで変更可能）。", watershed: "元本確定前の中身変更は、後順位のライバルCに文句を言わせない（承諾不要）！", winner: "承諾なしで変更可能", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『極度額（上限枠）』そのものを変更する場合は？", text: "中身の取引ジャンルではなく、上限枠の金額自体を「5000万円から1億円に引き上げる」という変更をしたい場合は？", sentence_override: "上限枠の拡大は、後順位のライバルCの取り分が物理的に減るため大迷惑。極度額の変更には【後順位抵当権者Cの承諾が絶対に必要】となる。", watershed: "ジャンルの変更（債権の範囲）は承諾不要！だが、金額の変更（極度額）は承諾が絶対！", winner: "後順位Cの承諾が必須", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【超重要罠】変更したことを「登記」し忘れていたら？", text: "AとBの間で「取引ジャンルを変更しよう」とバッチリ話し合って合意したが、法務局での変更登記を後回しにして放置していたら？", sentence_override: "民法398条の4第3項のペナルティ規定。確定前に変更の登記をしなかったときは【変更しなかったもの（昔のジャンルのまま）とみなされる】。後から登記してさかのぼることはできない。", watershed: "合意しただけじゃダメ！元本が確定してしまう前に『変更登記』まで完了させる義務あり！", winner: "変更はノーカウント（無効）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『元本が確定した後に取引ジャンルを変更する』ストーリー", text: "色々な事情で枠がカチッと締め切られた（元本確定後）段階で、「やっぱり担保する取引ジャンルを変えたい」とB銀行が言い出したら？", sentence_override: "元本が確定した瞬間に、根抵当権は「普通の抵当権」にガチガチに固定される。確定後は、債権の範囲を入れ替えることは【永久に不可能】となる。", watershed: "確定してしまったら最後、中身の入れ替え（範囲変更）は一切不可！", winner: "変更は完全に不可能", is_correct_track: false }
+        ],
+        commentary: "根抵当権の元本確定前（枠の締め切り前）は、中身の取引ジャンル（債権の範囲）や、だれの借金を担保するか（債務者）を、後順位のライバルCの承諾をもらうことなく**「設定者と銀行の合意だけで自由に変更可能」**です！後順位者Cからすれば、上限枠（極度額）の範囲内で中身が入れ替わるだけなので、文句を言う筋合いがないからです。ただし、上限の金額そのものを変える「極度額の変更」のときだけは、Cが大迷惑を被るので「承諾が必須」となる境界線を絶対に区別しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(担保すべき債権の範囲を|後順位抵当権者などの|その承諾を)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(得る必要は|ない|ある)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 37, next_html: "38",
+        title: "【重要用語37】借地権（普通借地権の存続期間と合意短縮の罠）",
+        base_statement: "AはBから建物の所有を目的として土地を借りる契約を結んだ（普通借地権）。このとき、地主Bと借地人Aの間で「借地期間は特別に20年とする」との合意を交わし、書面に残した。<span class=\"judge-underline\">この20年とする契約期間の合意は</span>、借地借家法上そのまま有効となるか、それとも修正されるか。",
+        tokens: ["建物の所有を目的とする", "借地権の存続期間は、", "当事者間で20年と", "定めた場合であっても、", "借地借家法の強制ルールにより", "一律に30年へと", "修正される。"],
+        
+        dictionary: [
+            { term: "37. 普通借地権（ふつうしゃくちけん）", definition: "建物を建てるために地主から土地を借りる権利です。借り手を強力に保護するため、民法よりも優先される「借地借家法」が適用されます。" },
+            { term: "存続期間の最低制限（そんぞくきかん）", definition: "普通借地権の最初の契約期間は、法律によって最低「30年」と決められています。これより短い期間を定めても、借り手に不利な契約は無効となります。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：期間を「30年未満（20年）」に合意短縮したら？（本問の正解）", text: "地主Bと借地人Aが双方納得の上で「最初の期間は20年」と定めて契約書にサインしたケース。", sentence_override: "借地借家法第3条により、期間を30年未満としたときは【30年としたものとみなされる】。当事者の合意よりも法律の最低30年ルールが強制適用されます。", watershed: "借り手に不利な短縮合意は完全ノーカウント！一律で30年に引き延ばされる！", winner: "期間は30年に修正（合意無効）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】期間を「30年以上（50年）」に長く定めたら？", text: "最低制限が30年なら、逆に長く「最初の期間は50年とする」と合意して契約した場合は有効？", sentence_override: "借地借家法は「借り手を保護する」法律。30年より長く定めることは借り手にとって大歓迎で有利なため、【50年とする合意がそのまま完全に有効】となります。", watershed: "30年より短いのは一律✕（30年に修正）だが、30年より長いのは100%有効！", winner: "50年として完全有効", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【対比】更新の「1回目」の期間はどうなる？", text: "30年が経過し、契約を初めて更新（1回目の更新）することになった。このときの最低期間は？", sentence_override: "借地借家法第4条。最初の更新時の存続期間は最低【20年】へと短縮される。これより短い合意は20年に修正されます（2回目以降の更新は最低10年）。", watershed: "最初は「30年」、1回目更新は「20年」、2回目以降更新は「10年」の階段落ち！", winner: "最低20年に修正", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『期間を定めなかったら地主がいつでも解約できる』の罠", text: "「契約書に期間を一切書かなかった（期間の定めなし）場合、地主はいつでも立ち退きを要求できる」という罠。", sentence_override: "期間を定めなかった場合は、法律によって自動的に【最初から30年契約】としてカチッとセットされる。地主がいつでも解約できるわけではないため誤り。", watershed: "期間を書き忘れた（定めなし）なら、自動で「30年」が強制発動！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "借地借家法は「土地を借りて家を建てて住む人」を絶対的に守るための法律です！家を建てるには莫大な費用がかかるため、地主の都合で「20年で出ていけ」と言われないよう、最初の期間は**「最低でも30年（強制ルール）」**と決まっています。これより短い合意は借り手に不利なためノーカウントとなり、一律30年に修正されます！ただし、借り手に有利な「50年契約」などは何の問題もなく有効になるという、片面的強行規定の仕組みを完全に理解しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(借地権の存続期間は|当事者間で20年と|借地借家法の強制ルールにより)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(修正される|ない|有効となる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

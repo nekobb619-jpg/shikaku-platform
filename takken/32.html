@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 32, next_html: "33",
+        title: "【重要用語32】弁済（第三者弁済の禁止特約と正当な利益の有無）",
+        base_statement: "AはBからお金を借りていたが、返済期日に用意できなかった。これを見かねたAの友人C（何の利害関係もない部外者）が、Aに代わって借金をBに返済（第三者弁済）しようとした。主たる債務者Aは「余計な真似はするな！」と大反対している。<span class=\"judge-underline\">債務者Aの意に反して、正当な利益のない第三者Cが</span>強引に弁済した場合、その弁済は有効となるか。",
+        tokens: ["正当な利益を有しない", "第三者Cによる弁済は、", "債務者Aの意思に反するときは、", "債権者Bがその事実を", "知っていた（悪意）ならば、", "法律上の効力を", "生じない。"],
+        
+        dictionary: [
+            { term: "32. 第三者弁済（だいさんしゃべんさい）", definition: "借金をした本人（債務者）以外の第三者が、代わりに債権者にお金を支払って借金を消滅させることです。原則として誰が代わりに返しても自由ですが、本人が嫌がっている場合は制限がかかります。" },
+            { term: "正当な利益（せいとうなりえき）", definition: "保証人や物上保証人など、「本人が借金を返さないと、自分自身が法的に大迷惑を被る」という切実な立場にある人のことです。単なる親切な友人は含まれません。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：利益のない第三者 × 債務者が反対 × 債権者が悪意（本問の正解）", text: "ただの友人Cが、本人Aの反対を無視して強引にBに支払った。BはAが嫌がっている事実を知っていた場合、この弁済は有効？", sentence_override: "民法第474条2項の改正ルール。正当な利益のない第三者Cが、Aの意思に反して弁済した場合、債権者Bがその反対の事実を【知っていた（悪意）、または過失で知らなかった】ときは、その弁済は【効力を生じない（無効）】。Aの借金は消えません。", watershed: "本人が反対しており、かつ銀行Bもそれを『知っていた（悪意）』なら、お節介弁済は一発無効！", winner: "弁済は無効（Aの借金は残る）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『債権者Bが、Aの反対を知らなかった（善意）』なら？", text: "本人Aは大反対していたが、銀行Bは「え？Cさん、代わりに払ってくれるの？ありがとう！」と、Aが嫌がっている事実を夢にも知らず（善意無過失）に受け取ってしまったら？", sentence_override: "債権者保護の規定。Bが反対の事実を全く知らなかった（善意無過失）ときは、受け取ったBを守るため、Cの身代わり弁済は【例外として完全に有効】となります。Aの借金は消滅します。", watershed: "本人が反対していても、受け取った銀行Bが『善意無過失』なら、お節介弁済でも有効に成立！", winner: "弁済は有効（Aの借金消滅）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【無敵】もしCが『正当な利益のある第三者（保証人など）』だったら？", text: "お節介な友人ではなく、本人が返さないと家を競売にかけられる立場にある「物上保証人」や「連帯保証人」のCが代わりに返す場合は？", sentence_override: "民法474条4項。正当な利益のある保証人Cは、債務者Aがどれほど「払うな！」と大反対していようが、債権者Bがそれを知っていようが、関係なく【いつでも単独で有効に弁済できる】。", watershed: "法的な『正当な利益（保証人など）』があるなら、本人の反対をなぎ倒して100%有効に返済できる！", winner: "弁済は100%有効", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【特約】あらかじめ「第三者弁済禁止」のルールを作っていたら？", text: "契約の段階で、AとBが「この借金は、本人以外からの返済は絶対に受け付けない」という特約を結んでいた場合は？", sentence_override: "民法474条3項。当事者間で第三者の弁済を禁止する特約を結んでいたときは、正当な利益のない第三者は、本人の同意があっても【弁済することができなくなります】。", watershed: "「第三者お断り」の特約があるなら、ただの友人の弁済は一発でシャットアウト！", winner: "弁済は不可", is_correct_track: false }
+        ],
+        commentary: "身代わり返済（第三者弁済）は、民法の大改正で仕分けの条件が非常に細かくなった最重要トラップです！法的な利害関係が一切ない「ただの友人」が、本人の意思を無視してお節介で代わりに返済した場合、受け取った債権者Bも「本人が嫌がっていること」を**「知っていた（悪意）」**のであれば、弁済は**「無効（効力を生じない）」**になります！ただし、代わりに返した人が「保証人」などの「正当な利益のある第三者」であれば、本人がどれだけ反対しようが関係なく【いつでも100%有効に返済できる】という違いを完璧に区別しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(正当な利益を有しない|第三者Cによる弁済は|債権者Bがその事実を)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(生じない|生じる|有効となる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

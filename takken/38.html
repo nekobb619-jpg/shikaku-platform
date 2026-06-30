@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 38, next_html: "39",
+        title: "【重要用語38】定期借地権（更新なし特権の有効要件と書面契約の罠）",
+        base_statement: "地主Aは「期間が来たら更新なしで100%土地が更地で戻ってくる」という一般定期借地権（期間50年）の契約をBと結びたい。このとき、AとBが「更新はしない」と口頭で固く約束し、普通の賃貸借契約書（特約なし）で契約した。<span class=\"judge-underline\">この「更新なし」とする定期借地権の特約は</span>、法的に有効となるか。",
+        tokens: ["一般定期借地権における", "更新をしない旨の特約は、", "50年以上の期間を定め、", "かつ必ず公正証書等の", "書面によって契約しなければ、", "特約が無効となり", "普通借地権へと", "変化してしまう。"],
+        
+        dictionary: [
+            { term: "38. 一般定期借地権（ていきしゃくちけん）", definition: "期間が満了したら絶対に更新されず、建物を取り壊して更地にして地主に返還しなければならない特殊な借地権です。契約期間を最低「50年以上」にする必要があります。" },
+            { term: "書面契約の強制（要式性）", definition: "定期借地権の「更新しない」という特約は、借り手にとって非常に酷で重大な不利益となるため、必ず「書面（公正証書など）」でカチッと残さなければならないという大原則です。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：定期借地特約 × 口頭（または普通書面特約なし）（本問の正解）", text: "口頭で「更新なしね」と約束しただけで、普通の書類を使って50年契約を結んだケース。", sentence_override: "借地借家法第22条。更新なしの特約を有効にするには「書面」での契約が絶対条件。口頭や特約のない普通書面では【特約は無効】となり、自動的に更新可能な「普通借地権（30年）」にダウングレードされます。", watershed: "書面（契約書への明記）がなければ、定期借地権の特約は一発で消滅して普通借地になる！", winner: "特約は無効（普通借地化）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：期間を「40年」にして公正証書で作ったら？", text: "完璧に「公正証書」という最強の書類を使って更新なしの契約を交わしたが、期間を「40年」に設定してしまった場合は？", sentence_override: "一般定期借地権の絶対要件は「50年以上」。どれだけ書類が完璧でも、期間が40年だと要件を満たさないため【特約は無効（普通借地化）】となります。", watershed: "一般定期借地権は『50年以上』＋『書面』の2大コンボが揃って初めて成立！", winner: "特約は無効（普通借地化）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【超重要罠】『必ず公正証書で作らなければならない』の嘘", text: "選択肢が「一般定期借地権を成立させるためには、必ず『公正証書』によって契約を締結しなければならない」と断言してきたら？", sentence_override: "条文上は「公正証書等の書面」となっており、普通の契約書（書面）でも有効に成立する。公正証書が必須なのは「事業用定期借地権」だけなので【記述は誤り】となる。", watershed: "一般定期借地権は公正証書じゃなくても『ただの紙の書面』でOK！騙されるな！", winner: "ひっかけ文章", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【対比】『事業用定期借地権（お店用）』の書類要件は？", text: "マイホーム用ではなく、ロードサイドの店舗（専ら事業用建物）のために期間20年の定期借地を結ぶ場合の書類要件は？", sentence_override: "借地借家法23条。事業用定期借地権だけは、ただの書面ではNGで【必ず公正証書で契約しなければならない】という超厳格ルールがある。", watershed: "一般用（マイホーム等）は『普通の書面』でOK！事業用（お店）は『公正証書』が絶対！", winner: "公正証書が絶対必須", is_correct_track: false }
+        ],
+        commentary: "定期借地権は、地主にとって「貸した土地が確実に返ってくる」夢の特権ですが、借り手からすれば「50年後に家を取り壊して出ていかなければならない」重いペナルティです。そのため、法律は**「①期間は50年以上」「②必ず書面（契約書）に明記する」**という2つの絶対条件を課しています！口頭の約束や、書面に「更新なし」と書き忘れた場合は、特約が木っ端微塵に無効となり、借り手がいつでも更新できる「普通借地権（地主の負け）」に強制変化します！また、一般定期借地権は「公正証書」でなくても「普通の書面」で有効に成立する（公正証書が絶対なのは事業用だけ）という仕分けを100%完璧にマスターしましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(一般定期借地権における|更新をしない旨の特約は|書面によって契約しなければ)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(無効となり|変化してしまう|ない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 2) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

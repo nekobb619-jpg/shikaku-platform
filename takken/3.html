@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 3, next_html: "4",
+        title: "【重要用語3】善意有過失（心裡留保の原則と相手方の不注意）",
+        base_statement: "Aが本心では土地を売る気がないのに、Bに「土地を売りたい」と嘘の意思表示（心裡留保）をした。<span class=\"judge-underline\">相手方BがAの本心を知らなかったことについて不注意があった場合（善意有過失）</span>、売買契約は有効となるか。",
+        tokens: ["Aの心裡留保による", "意思表示について、", "相手方Bが", "本心を知らないことに", "不注意（過失）がある", "ときであっても、", "売買契約は", "有効となる。"],
+        
+        dictionary: [
+            { term: "3. 善意有過失（ぜんいうかしつ）", definition: "裏の事情を知らないものの、少し注意を払えば気づくことができたはずという不注意がある状態を指します。" },
+            { term: "心裡留保（しんりりゅうほ）", definition: "冗談や嘘で売ると口に出すこと。相手方を信じさせた責任があるため、原則として契約は有効になります。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：【完全クリーン】相手方が善意無過失なら？", text: "相手方BがAの冗談を全く知らず、見抜けなかったことに対して非が一切ない場合。", sentence_override: "相手方が完全クリーンな善意無過失であれば、その信頼を守るために契約は文句なしに有効となる。", watershed: "善意無過失の相手方なら100%保護して契約有効！", winner: "相手方Bの勝ち（契約有効）", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：心裡留保 × 相手方が善意有過失（本問の条件）", text: "本心を知らなかったが、うっかり不注意（過失）があった相手方B。契約はどうなる？", sentence_override: "心裡留保は相手方が悪意または有過失のときは無効になるため、この売買契約は有効とはならず無効となる。", watershed: "相手方に『うっかり過失』があるなら保護せず無効！", winner: "契約は無効（Aの勝ち）", is_correct_track: true },
+            { id: 3, label: "🔍 パターンC：【対比：嘘のケース】通謀虚偽表示（グル）の場合", text: "お互いグルで嘘をついて第三者Cに転売した場合は？", sentence_override: "虚偽表示の無効は、第三者Cが善意であれば過失があっても保護されるため、AはCに無効を対抗できない。", watershed: "虚偽表示なら『過失あり（有過失）』でも善意ならCの勝ち", winner: "第三者Cの勝ち（返還不要）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『過失があれば本人の心理にかかわらず常に無効』の罠", text: "「意思表示をした本人に過失があれば、いかなる場合でも常に無効である」という選択肢の罠。", sentence_override: "心裡留保は原則有効であり、無効を判定するのは本人ではなく相手方の過失の有無であるため、この記述は誤りとなる。", watershed: "主語のすり替え罠（本人の過失ではなく相手方の過失）", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "心裡留保は原則有効ですが、相手が『普通に考えたら冗談だと気付けたはず（有過失）』のときは、そんなうっかりしている相手方を保護する必要はないため、例外として契約は無効になります！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(相手方Bが|意思表示について|売買契約は)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(有効となる|無効となる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+        
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 2) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

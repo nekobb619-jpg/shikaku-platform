@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>宅建法律ラボ - スラッシュ道場 [プレイヤーポータル]</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; }
+        body { font-family: -apple-system, sans-serif; background-color: #121214; color: #ffffff; overflow: hidden; height: 100vh; }
+        #app-container {
+            display: flex; flex-direction: column; height: 100vh; width: 100%;
+            max-width: 800px; margin: 0 auto; background-color: #151518;
+            border-left: 1px solid #2a2a32; border-right: 1px solid #2a2a32; position: relative;
+        }
+        #menu-view { padding: 20px 16px; overflow-y: auto; height: 100%; display: block; }
+        .app-title-header { text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 2px solid #ff9f0a; }
+        .app-title-header h1 { font-size: 22px; color: #ff9f0a; }
+        .app-title-header p { font-size: 13px; color: #8a8a93; margin-top: 4px; }
+        .control-panel { display: flex; gap: 10px; margin-bottom: 15px; }
+        .control-btn { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; border: none; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-shuffle { background: linear-gradient(135deg, #ff9f0a, #ff3b30); color: white; }
+        .btn-normal { background: #2c2c35; color: #d1d1d6; border: 1px solid #444; }
+        
+        .category-folder { background-color: #22222a; border: 1px solid #3a3a45; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        .category-header { padding: 14px 16px; font-size: 15px; font-weight: bold; color: #ff9f0a; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .category-header:hover { background-color: #2a2a35; }
+        .list-grid { display: flex; flex-direction: column; gap: 10px; padding: 12px 10px; background-color: #151518; }
+        
+        .stage-link-card { background-color: #1a1a1e; border: 1px solid #2c2c35; border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .stage-link-card:hover { border-color: #ff9f0a; background-color: #221e1a; }
+        .stage-num { font-size: 13px; font-weight: bold; color: #ff9f0a; background: #25252a; padding: 4px 8px; border-radius: 4px; }
+        .stage-name { flex: 1; font-size: 14px; font-weight: bold; margin-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        #game-view { display: none; flex-direction: column; height: 100vh; width: 100%; }
+        .fixed-parent-header { display: flex; background-color: #1a1a1e; border-bottom: 2px solid #2a2a32; height: 55px; flex-shrink: 0; align-items: center; }
+        .home-back-btn { width: 55px; height: 55px; background: none; border: none; color: #ff9f0a; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-right: 1px solid #2a2a32; }
+        .parent-title-label { flex: 1; padding-left: 15px; font-size: 15px; font-weight: bold; color: #ff9f0a; }
+        #stage-frame { flex: 1; width: 100%; border: none; background-color: #121214; }
+        .fixed-parent-footer { height: 65px; background-color: #1a1a1e; border-top: 2px solid #2a2a32; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
+        .footer-btn { padding: 12px 18px; border-radius: 8px; font-weight: bold; font-size: 14px; border: none; cursor: pointer; }
+        .btn-prev { background: #2c2c35; color: #ffffff; border: 1px solid #444; }
+        .btn-reset { background: #2c2c35; color: #ff9f0a; border: 1px solid #ff9f0a; }
+        .btn-submit { background: linear-gradient(135deg, #ff9f0a, #ff3b30); color: white; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="menu-view">
+        <div class="app-title-header">
+            <h1>⚔️ 宅建法律ラボ - スラッシュ道場</h1>
+            <p>重要用語 1〜80＋ 無限拡張マスターポータル</p>
+        </div>
+        <div class="control-panel">
+            <button class="control-btn btn-shuffle" onclick="shuffleInCategories()">🔀 各分野内でシャッフル！</button>
+            <button class="control-btn btn-normal" onclick="resetStagesOrder()">🔢 番号順に戻す</button>
+        </div>
+        <div id="main-catalog-container"></div>
+    </div>
+
+    <div id="game-view">
+        <div class="fixed-parent-header">
+            <button class="home-back-btn" onclick="backToMenuPortal()">🏠</button>
+            <div class="parent-title-label" id="parent-header-title">単元プレイ中</div>
+        </div>
+        <iframe id="stage-frame" src=""></iframe>
+        <div class="fixed-parent-footer">
+            <button class="footer-btn btn-prev" id="parent-prev-btn" onclick="triggerChildPrev()">🔙 前へ</button>
+            <button class="footer-btn btn-reset" onclick="triggerChildReset()">🔄 マークリセット</button>
+            <button class="footer-btn btn-submit" onclick="triggerChildSubmit()">実験終了、決着！ ▶</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentActiveNum = 1;
+    const categories = ["権利関係", "宅建業法編（用語v2）", "法令上の制限・その他（用語v3予定）"];
+
+    const masterStageList = [
+        { num: 1, cat: "権利関係", title: "善意（虚偽表示の第三者・過失の罠）", short: "第 1 単元：善意" },
+        { num: 2, cat: "権利関係", title: "悪意（二重譲渡と背信的悪意者）", short: "第 2 単元：悪意" },
+        { num: 3, cat: "権利関係", title: "善意有過失（心裡留保と相手方の不注意）", short: "第 3 単元：善意有過失" },
+        { num: 4, cat: "権利関係", title: "善意無過失（詐欺取消と第三者要件）", short: "第 4 単元：善意無過失" },
+        { num: 5, cat: "権利関係", title: "過失相殺（不法行為と裁判所の義務規定）", short: "第 5 単元：過失相殺" },
+        { num: 6, cat: "権利関係", title: "無効（公序良俗違反と追認不可の鉄則）", short: "第 6 単元：無効" },
+        { num: 7, cat: "権利関係", title: "取消（制限行為能力者・取消の遡及効）", short: "第 7 単元：取消" },
+        { num: 8, cat: "権利関係", title: "追認（詐欺契約と追認の有効要件）", short: "第 8 単元：追認" },
+        { num: 9, cat: "権利関係", title: "善意の第三者（A-B間の心理留保とCの保護）", short: "第 9 単元：善意の第三者" },
+        { num: 10, cat: "権利関係", title: "悪意の第三者（通謀虚偽表示と悪意者への対抗）", short: "第 10 単元：悪意の第三者" },
+        { num: 11, cat: "権利関係", title: "過失のグラデーション（錯誤取消の要件と重過失）", short: "第 11 単元：過失のグラデーション" },
+        { num: 12, cat: "権利関係", title: "詐欺・強迫の対比（強迫取消と第三者対抗ルール）", short: "第 12 単元：詐欺・強迫の対比" },
+        { num: 13, cat: "権利関係", title: "第三者による詐欺（相手方の知・不知と取消要件）", short: "第 13 単元：第三者による詐欺" },
+        { num: 14, cat: "権利関係", title: "無権代理（本人の追認拒絶と効果の帰属）", short: "第 14 単元：無権代理" },
+        { num: 15, cat: "権利関係", title: "表見代理（本人に落ち度がある無権代理の責任）", short: "第 15 単元：表見代理" },
+        { num: 16, cat: "権利関係", title: "復代理（復代理人の立ち位置と本人の関係）", short: "第 16 単元：復代理" },
+        { num: 17, cat: "権利関係", title: "自己契約・双方代理（利益相反行為の原則禁止と例外）", short: "第 17 単元：自己契約・双方代理" },
+        { num: 18, cat: "権利関係", title: "条件・期限（停止条件の成就と効力発生の罠）", short: "第 18 単元：条件・期限" },
+        { num: 19, cat: "権利関係", title: "消滅時効（一般的な債権の時効期間とカウント起点）", short: "第 19 単元：消滅時効" },
+        { num: 20, cat: "権利関係", title: "取得時効（占有開始時の心理状態と必要期間の分岐）", short: "第 20 単元：取得時効" },
+        { num: 21, cat: "権利関係", title: "対抗関係・登記（二重譲渡における登記の絶対的優位）", short: "第 21 単元：対抗関係・登記" },
+        { num: 22, cat: "権利関係", title: "相続と登記（遺産分割の前後における第三者対抗）", short: "第 22 単元：相続と登記" },
+        { num: 23, cat: "権利関係", title: "時効と登記（時効完成前・完成後の第三者対抗関係）", short: "第 23 単元：時効と登記" },
+        { num: 24, cat: "権利関係", title: "取消と登記（詐欺取消「後」の第三者との対抗関係）", short: "第 24 単元：取消と登記" },
+        { num: 25, cat: "権利関係", title: "抵当権（建物の焼失と火災保険金への物上代位）", short: "第 25 単元：抵当権" },
+        { num: 26, cat: "権利関係", title: "根抵当権（元本確定前における債権の範囲変更）", short: "第 26 単元：根抵当権" },
+        { num: 27, cat: "権利関係", title: "保証債務（普通の保証人が持つ催告・検索の抗弁権）", short: "第 27 単元：保証債務" },
+        { num: 28, cat: "権利関係", title: "連帯保証（連帯保証人への債務免除と相対効の原則）", short: "第 28 単元：連帯保証" },
+        { num: 29, cat: "権利関係", title: "連帯債務（法改正による相殺権行使と絶対効の範囲）", short: "第 29 単元：連帯債務" },
+        { num: 30, cat: "権利関係", title: "悪意の第三者・再定義（虚偽表示の転得者とバリア）", short: "第 30 単元：悪意の第三者・再定義" },
+        { num: 31, cat: "権利関係", title: "債権譲渡（二重譲渡における優劣と確定日付の罠）", short: "第 31 単元：債権譲渡" },
+        { num: 32, cat: "権利関係", title: "弁済（第三者弁済の禁止特約と正当な利益の有無）", short: "第 32 単元：弁済" },
+        { num: 33, cat: "権利関係", title: "契約不適合責任（目的物の欠陥と通知期間制限）", short: "第 33 単元：契約不適合責任" },
+        { num: 34, cat: "権利関係", title: "売買手付（手付放棄・倍額償還による解除の限界点）", short: "第 34 単元：売買手付" },
+        { num: 35, cat: "権利関係", title: "賃貸借契約（敷金返還債務の承継と明渡しタイミング）", short: "第 35 単元：賃貸借契約" },
+        { num: 36, cat: "権利関係", title: "信頼関係破壊の法理（無断転貸と解除権制限ルール）", short: "第 36 単元：信頼関係破壊の法理" },
+        { num: 37, cat: "権利関係", title: "借地権（普通借地権の存続期間と合意短縮の罠）", short: "第 37 単元：借地権" },
+        { num: 38, cat: "権利関係", title: "定期借地権（更新なし特権の有効要件と書面強制）", short: "第 38 単元：定期借地権" },
+        { num: 39, cat: "権利関係", title: "普通借家権（期間1年未満の契約と定めなき契約の罠）", short: "第 39 単元：普通借家権" },
+        { num: 40, cat: "権利関係", title: "区分所有法（集会における規約変更の特別多数決要件）", short: "第 40 単元：区分所有法" }
+    ];
+
+    for(let i = 41; i <= 80; i++) {
+        masterStageList.push({ num: i, cat: "宅建業法編（用語v2）", title: `宅建業法重要システム第 ${i} 講（データ作成待機中）`, short: `第 ${i} 単元` });
+    }
+    for(let i = 81; i <= 100; i++) {
+        masterStageList.push({ num: i, cat: "法令上の制限・その他（用語v3予定）", title: `法令制限・税等システム第 ${i} 講（予約枠）`, short: `第 ${i} 単元` });
+    }
+
+    window.onload = function() { renderCatalog(false); };
+
+    // 📁 レンダリング（通常モード/各分野内シャッフルモード共通）
+    function renderCatalog(shouldShuffle) {
+        const mainContainer = document.getElementById("main-catalog-container");
+        mainContainer.innerHTML = "";
+
+        categories.forEach((catName, cIdx) => {
+            const folder = document.createElement("div");
+            folder.className = "category-folder";
+            const displayStyle = (cIdx === 0 || shouldShuffle) ? "flex" : "none";
+            const arrowMark = (cIdx === 0 || shouldShuffle) ? "▲" : "▼";
+
+            folder.innerHTML = `
+                <div class="category-header" onclick="toggleFolder(this)">
+                    <span>📂 ${catName}</span>
+                    <span class="arrow-indicator">${arrowMark}</span>
+                </div>
+                <div class="list-grid" style="display: ${displayStyle};"></div>
+            `;
+            
+            const grid = folder.querySelector(".list-grid");
+            let filteredStages = masterStageList.filter(s => s.cat === catName);
+            
+            // 各自の分野（フォルダー）内だけでカードをシャッフル
+            if (shouldShuffle) {
+                for (let i = filteredStages.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [filteredStages[i], filteredStages[j]] = [filteredStages[j], filteredStages[i]];
+                }
+            } else {
+                filteredStages.sort((a, b) => a.num - b.num);
+            }
+            
+            filteredStages.forEach(data => {
+                const card = document.createElement("div");
+                card.className = "stage-link-card";
+                card.onclick = () => navigateToStage(data.num, data.short);
+                card.innerHTML = `
+                    <span class="stage-num">${String(data.num).padStart(2, '0')}</span>
+                    <span class="stage-name">${data.title}</span>
+                    <span>▶</span>
+                `;
+                grid.appendChild(card);
+            });
+            mainContainer.appendChild(folder);
+        });
+    }
+
+    function shuffleInCategories() { renderCatalog(true); }
+    function resetStagesOrder() { renderCatalog(false); }
+
+    function toggleFolder(header) {
+        const grid = header.nextElementSibling;
+        const arrow = header.querySelector(".arrow-indicator");
+        if (grid.style.display === "none") {
+            grid.style.display = "flex"; arrow.innerText = "▲";
+        } else {
+            grid.style.display = "none"; arrow.innerText = "▼";
+        }
+    }
+
+    function navigateToStage(num, titleText) {
+        currentActiveNum = num;
+        document.getElementById("menu-view").style.display = "none";
+        document.getElementById("game-view").style.display = "flex";
+        document.getElementById("parent-header-title").innerText = titleText;
+        document.getElementById("stage-frame").src = num + ".html";
+        const prevBtn = document.getElementById("parent-prev-btn");
+        if(num === 1) { prevBtn.style.opacity = "0.4"; prevBtn.innerText = "🔙 最初"; }
+        else { prevBtn.style.opacity = "1"; prevBtn.innerText = "🔙 前へ"; }
+    }
+
+    function backToMenuPortal() {
+        document.getElementById("game-view").style.display = "none";
+        document.getElementById("menu-view").style.display = "block";
+        document.getElementById("stage-frame").src = "";
+    }
+
+    function triggerChildReset() { document.getElementById("stage-frame").contentWindow.postMessage({ command: "RESET" }, "*"); }
+    function triggerChildSubmit() { document.getElementById("stage-frame").contentWindow.postMessage({ command: "SUBMIT" }, "*"); }
+
+    function triggerChildPrev() {
+        if(currentActiveNum > 1) {
+            const prevNum = currentActiveNum - 1;
+            const prevData = masterStageList.find(d => d.num === prevNum);
+            navigateToStage(prevNum, prevData.short);
+        } else { alert("💡 ここが最初の問題です！"); }
+    }
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.action === "NEXT_STAGE") {
+            const nextNum = parseInt(event.data.currentNum) + 1;
+            if (nextNum <= masterStageList.length) {
+                const nextData = masterStageList.find(d => d.num === nextNum);
+                navigateToStage(nextNum, nextData.short);
+            } else {
+                alert("🏆 全単元を完全制覇しました！"); backToMenuPortal();
+            }
+        }
+    });
+</script>
+</body>
+</html>

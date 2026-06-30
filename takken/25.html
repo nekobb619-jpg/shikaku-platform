@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 25, next_html: "26",
+        title: "【重要用語25】抵当権（建物の焼失と火災保険金への物上代位）",
+        base_statement: "AがB銀行からお金を借り、自己の所有する建物に抵当権を設定した。その後、この建物が火災によって焼失してしまった。<span class=\"judge-underline\">B銀行は、Aが受け取るはずの火災保険金に対して</span>、抵当権の効力を及ぼして差し押さえる（物上代位）ことができるか。ただし、保険金がAに払い渡される前に手続きを行う必要があるか。",
+        tokens: ["抵当不動産が", "火災により焼失した場合、", "抵当権者はその目的物の", "変形物である火災保険金に", "物上代位できるが、", "保険金が実際に払い渡される", "前に、", "差し押さえをしなければ", "ならない。"],
+        
+        dictionary: [
+            { term: "25. 抵当権（ていとうけん）", definition: "借金のカタとして、不動産に設定する担保権です。設定後も所有者はそのまま家を使い続けられますが、返済が滞ると競売にかけられます。" },
+            { term: "物上代位（ぶつじょうだいい）", definition: "担保にしていた家が燃えたり（焼失）、他人に貸したり（賃貸）して形が変わったとき、その代わりに発生したお金（保険金や家賃）をダイレクトに横取りできる強力な権利です。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：火災保険金 × 払渡前の差し押さえ（本問の正解）", text: "家が全焼してしまったが、Aが保険会社から保険金を手に入れる前のタイミングで、B銀行が法的にホールドをかける場合は？", sentence_override: "民法第304条（物上代位）のルール。目的物が滅失しても、その代わりに発生した「火災保険金」に効力を及ぼせる。ただし、保険会社がAに【払い渡す前に差し押さえる】ことが絶対要件となる。", watershed: "保険金に物上代位できるが、相手に『払い渡される前』の差押が必須！", winner: "B銀行の勝ち（物上代位成功）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『払い渡された後』でもホールドできる？", text: "Aがすでに保険会社から現金（または口座振込）で保険金を受け取ってしまった後に、B銀行が「その金は俺のだ！」と要求してきたら？", sentence_override: "保険金がAの手元に渡ると、Aの他の財産（元々の貯金など）とごちゃ混ぜになり区別がつかなくなる（混同）。よって払渡後は【物上代位できなくなる】。", watershed: "一度相手の財布にお金が入って（払渡後）しまったら、もう手遅れ！", winner: "所有者Aの勝ち（銀行の負け）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【最重要例外】『売買代金』への物上代位を狙うなら？", text: "家が燃えたのではなく、Aが抵当権付きのまま家を第三者Xに売却した。B銀行は、AがXから受け取る「売買代金」を物上代位で差し押さえられる？", sentence_override: "抵当権は家そのものにベッタリ付着して追いかけられるため、売買代金を差し押さえる必要がない。判例上、売買代金への物上代位は【原則として認められない】。", watershed: "「火災保険金」「家賃」は物上代位OK！だが「売買代金」は物上代位NG！", winner: "物上代位は不発（例外ルール）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『申立てをしなくても裁判所が自動で差し押さえる』の罠", text: "「家が燃えた場合、法務局や裁判所が自動的に保険金をロックするため、銀行がわざわざ差し押さえる必要はない」という罠。", sentence_override: "権利は自分で使わなければ動かない。銀行自らが差押えの申立てをしなければ、そのままAに払い渡されて権利を失うため【誤り】となる。", watershed: "国は自動で助けてくれない！自分で差押えを申し立てる義務あり！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "目的物が燃えてしまったときの「火災保険金」や、目的物を貸したときの「家賃」には、抵当権のパワーをそのままスライドさせて横取り（物上代位）できます！ただし、相手の口座に入って他の所有金と混ざってしまうとアウトになるため、**「払い渡される前に自分で差し押さえる」**ことが絶対条件です！また、試験では「売買代金」にも物上代位できると嘘を書いてくるので、「売買代金は物上代位できない（そのまま家を追いかければいいから）」の境界線を徹底死守しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(抵当不動産が|抵当権者はその目的物の|差し押さえをしなければ)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(物上代位できるが|ならない|できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

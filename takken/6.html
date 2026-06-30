@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 6, next_html: "7",
+        title: "【重要用語6】無効（公序良俗違反と追認不可の鉄則）",
+        base_statement: "犯罪行為への加担や賭博の借金など、社会通念に反する<span class=\"judge-underline\">公序良俗に反する最初から無効な契約</span>について、当事者が後から「あの契約を有効と認めます」と追認した場合、その契約は最初から有効なものとして生き返るか。",
+        tokens: ["公序良俗に反する", "無効な契約は、", "当事者が後から", "追認したとしても、", "それによって新たに", "有効な契約に", "ひっくり返ることは", "ない。"],
+        
+        dictionary: [
+            { term: "6. 無効（むこう）", definition: "最初から法律上の効果が「全く、1ミリも発生していない」状態を指します。時間の経過によって有効になることもありません。" },
+            { term: "公序良俗違反（こうじょりょうぞくいはん）", definition: "殺人依頼の報酬や賭博の借金など、社会の道徳や秩序に著しく反する契約のこと。民法90条により、最初から当然に「無効」となります。" },
+            { term: "追認（ついにん）", definition: "後から「まぁいいよ、あの不完全な契約を認めます」と承諾を与えること。取り消せる契約（詐欺など）を追認すると、最初から有効としてカチッと確定します。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：【対比ケース】『取り消せる契約（詐欺）』を追認したら？", text: "最初から効果ゼロなわけではなく、だまされた（詐欺）ことによる『取り消すことができる契約』を後から追認した場合は？", sentence_override: "取り消せる契約を後から追認したときは、最初から【有効な契約であったものとして確定】し、もう二度と取り消すことはできなくなる。", watershed: "取消できる契約は、追認によって『有効で確定』に大逆転！", winner: "有効として確定", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：公序良俗違反 × 最初から無効な契約の追認（本問の正解）", text: "反社会的な、ハナから無効規定に引っかかっている契約。当事者が後から認めたら有効になる？", sentence_override: "公序良俗違反による無効は絶対的。当事者がいくら後から追認したとしても、それによって有効な契約に【なることは絶対にない】。", watershed: "公序良俗違反の無効は『追認しても無駄（ずっと無効）』！", winner: "無効のまま不変", is_correct_track: true },
+            { id: 3, label: "🔍 パターンC：【超重要例外】『通謀虚偽表示（嘘の売買）』の無効を追認したら？", text: "同じ無効でも、お互いグルになって嘘の売買をした『通謀虚偽表示』の無効契約を、後から「本当に有効にしよう」と追認したら？", sentence_override: "虚偽表示の無効は、後から追認した時点で【その時から新しい別の売買契約を結んだもの】と法律上みなされる例外ルールがある。", watershed: "虚偽表示の追認は『その時から新しい有効な契約』に変化する！", winner: "新しい契約とみなす", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：無効主張の「期限（時効）」について争われたら？", text: "「最初から無効な契約であっても、20年間誰も文句を言わずに放置されていたなら、時効によって有効として扱われる」という罠は？", sentence_override: "無効は最初から最後までずっとゼロ。何年、何十年が経過したとしても、いつでも誰からでも無効を主張【できる】ため、記述は誤りとなる。", watershed: "無効に時効の期限はなし！（何年経ってもゼロはゼロ）", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "『無効』とは最初からゼロの状態です。特に公序良俗違反のような社会的に許されない契約は、後から当事者がどれほど認めた（追認した）としても、有効にひっくり返ることは絶対にありません（ずっと無効です）。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(無効な契約は|当事者が後から)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(なることはない|ない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 2) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

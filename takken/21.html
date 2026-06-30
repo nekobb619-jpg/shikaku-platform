@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 21, next_html: "22",
+        title: "【重要用語21】対抗関係・登記（二重譲渡における登記の絶対的優位）",
+        base_statement: "Aは所有する土地をBに売却したが、まだ名義の変更（登記）をしていないうちに、同じ土地をCにも重ねて売却（二重譲渡）した。<span class=\"judge-underline\">先に登記を備えたCに対して</span>、先に買い受けたはずのBは所有権を主張して土地を引き渡すよう請求できるか。",
+        tokens: ["不動産の二重譲渡における", "BとCの関係は対抗関係であり、", "先に不動産を購入したBであっても、", "先に登記を備えたCに対しては、", "所有権の取得を", "対抗することが", "できない。"],
+        
+        dictionary: [
+            { term: "21. 対抗関係（たいこうかんけい）", definition: "同じ不動産を狙うライバル同士の関係。民法第177条により、先に登記した側が勝利します。" },
+            { term: "登記（とうき）", definition: "法務局の不動産登記簿に登録してもらうこと。不動産の世界における早い者勝ちのゴールテープです。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：二重譲渡 × 先に登記を備えたライバル（本問の正解）", text: "Bの方が先に契約してお金を払ったが、Cの方が一歩早く登記手続きを完了させたケース。", sentence_override: "二重譲渡の譲受人同士は完全な対抗関係であり、登記を先に奪われたBはCに対して所有権を対抗できません。", watershed: "売買契約の先後ではなく、登記を先に取ったCが絶対的な勝者！", winner: "登記のあるCの勝ち", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【対比ケース】『元の売主（当事者）』に迫る場合は？", text: "登記を失ったBが、二重譲渡という裏切り行為を働いた「元の売主A」自身に対して迫る場合は？", sentence_override: "売主Aと買主Bは契約の「当事者」そのもの。当事者間では登記などなくても100%所有権を主張できます。", watershed: "ライバルには登記が必要だが、身内の売主には登記なしで勝てる！", winner: "買主Bの勝ち（登記不要）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【対比ケース】『不法占拠者（泥棒）』に立ち退きを求めるなら？", text: "二重譲渡ではなく、Bが買った土地に、何の権利も持たない赤の他人（不法占拠者）が勝手に居座っている場合は？", sentence_override: "不法占拠者は民法177条の「第三者」に含まれません。Bは自分が登記を持っていなくても、居座る泥棒を追い出せます。", watershed: "正当な権利のない悪い奴（不法占拠者）は、登記なしで即座に一掃可能！", winner: "買主Bの勝ち（登記不要）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『登記さえあれば、どんな凶悪な人間でも常に勝てる』の罠", text: "「二重譲渡のライバル関係であれば、登記さえ持っていれば、どんなに極悪非道な人間でも100%保護される」という罠。", sentence_override: "嫌がらせや不当利益目的の「背信的悪意者」が相手なら、登記があっても勝てない（保護されない）ため誤りです。", watershed: "登記は強力だが、『背信的悪意者』の壁だけは突破できない！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "「対抗関係（登記がないと勝てない関係）」になるのは、どちらも正当な権利を主張するライバル同士（二重譲渡の買主同士など）のときだけです！先に契約したか、お金を先に払ったかは関係なく、「法務局に登記を先に入れた側」が完全勝利を収めます。ただし、売主本人（当事者）や、タダの泥棒（不法占拠者）が相手なら、登記がなくても勝てる（登記不要）という「誰が相手か」の仕分けが決定的な分水嶺となります！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(不動産の二重譲渡における|BとCの関係は対抗関係であり|先に登記を備えたCに対しては)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(対抗することが|できない|できる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `
+                <div class="nuance-header">${nu.label}</div>
+                <div class="nav-text">${nu.text}</div>
+                <div class="card-inner-board">
+                    <div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div>
+                    <div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div>
+                    <div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div>
+                </div>`;
+            
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                // 結論バッジのテキストと色のダイナミック書き換え
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

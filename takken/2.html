@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 2, next_html: "3",
+        title: "【重要用語2】悪意（二重譲渡の原則と背信的悪意者の罠）",
+        base_statement: "Aが所有する土地をBに売却した後、Cにも重ねて売却（二重譲渡）した。<span class=\"judge-underline\">CがBの買い受けの事実を単に知っていた場合（悪意）</span>, CがBより先に登記を備えたとしても、Bに対して所有権を対抗することはできないか。",
+        tokens: ["Aが土地を", "BとCに二重譲渡", "した場合において、", "CがBへの売却事実を", "知っていた（悪意）", "ときであっても、", "先に登記を備えたCは", "Bに対して所有権を", "対抗できる。"],
+        
+        dictionary: [
+            { term: "2. 悪意（あくい）", definition: "法律上の「悪意」とは、特定の事実（他人が先に不動産を買ったことなど）を【知っている】という状態を意味します。嫌がらせの意図は含みません。" },
+            { term: "二重譲渡（にじゅうじょうど）", definition: "売主が同じ不動産を、別々の二人（B and C）に重ねて売ってしまうこと。契約の前後ではなく「登記（名義）を先にとった側」が最終的に勝ちます。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：もしもCが悪意を超えたアウト『背信的悪意者』だったら？", text: "CがBを困らせて大儲けしてやろうと企む、極めて悪質な人物だった場合は？", sentence_override: "道徳的に許されない背信的悪意者Cは保護されない。たとえ先に登記を持っていても、Bに対して所有権を主張できない。", watershed: "背信的悪意者は登記があっても一発負け！", winner: "第一買主Bの勝ち", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：二重譲渡 × 単なる悪意の第三者（本問の正解）", text: "他人が先に買ったことを『単に知っている』だけのC。先に登記を入手したら勝てる？", sentence_override: "二重譲渡は早い者勝ちの競争関係。単なる悪意にすぎないCであっても、先に登記を備えればBに所有権を対抗できる。", watershed: "単なる悪意なら登記があるCの勝ち！", winner: "第三者Cの勝ち", is_correct_track: true },
+            { id: 3, label: "🔍 パターンC：【対比】通謀虚偽表示（嘘の売買）の悪意なら？", text: "二重譲渡ではなく、A・B間の売買が嘘っぱちで、Cがそれを『知っていた』場合は？", sentence_override: "嘘の事実を知っている悪意の第三者Cは一切保護されない。よって元の所有者AはCに無効を主張できる。", watershed: "事情を『知っていた（悪意）』なら保護は完全にゼロ", winner: "元の所有者Aの勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『悪意の者は一律に一切対抗できない』の罠は？", text: "「他人が買ったことを知っている悪意の者は、いかなる場合でも対抗できない」と言い切ってきたパターン。", sentence_override: "二重譲渡のように、悪意でも登記があれば勝てる巨大な例外があるため、「一律に対抗できない」とする選択肢は誤りとなる。", watershed: "試験の典型的なひっかけ（原則の押し売り✕）", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "不動産の二重譲渡だけは超強力な例外です！『契約の先後ではなく、名義（登記）を先に登録した方が勝者』という鉄のルールがあるため、単に知っているだけのCでも、先に登記を手に入れたら大逆転で勝利します！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(CがBの|先に登記を|対抗することは)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できる|できない|対抗できる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+        
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 2) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

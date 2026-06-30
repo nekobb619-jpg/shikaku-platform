@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 11, next_html: "12",
+        title: "【重要用語11】過失のグラデーション（錯誤取消の要件と重過失の罠）",
+        base_statement: "Aは勘違い（錯誤）して土地を安値で売る契約をBと結んでしまった。<span class=\"judge-underline\">Aに重大な不注意（重過失）があった場合</span>、相手方Bが Aの勘違いを最初から知っていた（悪意）としても、Aは契約の取り消しを主張することができないか。",
+        tokens: ["錯誤による取消は、", "表意者に重大な過失が", "あるときは原則できないが、", "相手方が悪意のときは、", "例外として", "錯誤による取消を", "主張することが", "できる。"],
+        
+        dictionary: [
+            { term: "11. 過失のグラデーション", definition: "落ち度の強さ。うっかり不注意の「軽過失（単なる過失）」と、ほとんどわざとに近いほどの著しい不注意である「重過失（重大な過失）」に分類されます。" },
+            { term: "錯誤（さくご）", definition: "勘違いのこと。契約の重要な部分に勘違いがあった場合、原則として後から「取消」を主張できますが、自分に重過失があると制限されます。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：表意者に『重過失』があり、相手方は完全善意無過失なら？", text: "勘違いしたAに重大な落ち度（重過失）があり、相手方Bは普通に親切なピュアな状態。", sentence_override: "Aに重過失がある場合、相手方を保護するため原則としてAから取り消すことは【できない】。", watershed: "自分に重過失（大落ち度）があるなら、原則として取消権は剥奪！", winner: "相手方Bの勝ち", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：表意者に『重過失』× 相手方が悪意（本問の条件）", text: "Aは重大な勘違いをしているが、相手方Bは「あいつ勘違いしてるぞ、しめしめ」と知っていた（悪意）場合は？", sentence_override: "相手方が悪意または同じ勘違い（共通錯誤）のときは、Aに重過失があっても【例外として取り消すことができる】（民法95条3項）。", watershed: "相手方も「知ってた（悪意）」なら、お互い様なので重過失があっても取消可能！", winner: "勘違いしたAの勝ち", is_correct_track: true },
+            { id: 3, label: "🔍 パターンC：表意者に『軽過失（単なる過失）』があるだけなら？", text: "大落ち度（重過失）ではなく、普通の人間が犯すレベルの「うっかり不注意（過失）」があった場合は？", sentence_override: "単なる過失（軽過失）であれば、錯誤取消の権利は失われない。AはいつでもBに対して【契約を取り消すことができる】。", watershed: "重過失でなければ、自分にうっかり過失があっても取消OK！", winner: "勘違いしたAの勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『重過失があれば相手方の状態に関わらず一律取消不可』の罠", text: "「表意者に重大な過失があるときは、いかなる場合であっても取消を主張できない」と言い切ってきたパターン。", sentence_override: "今回のように相手方が悪意などの例外ケース（逆転ルール）が存在するため、この記述は100%【誤り】となる。", watershed: "重過失があっても相手が「悪意」なら取り消せる例外に厳重警戒！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "錯誤（勘違い）のルールは過失の強さ（グラデーション）が命です！自分に重大な落ち度（重過失）があると原則取り消せませんが、相手方もそれを「知っていた（悪意）」のときは【取り消せる】という超重要例外をマスターしましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(錯誤による取消は|表意者に重大な過失が|相手方が悪意のときは)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できる|できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 2 || nu.id === 3) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

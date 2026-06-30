@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 20, next_html: "21",
+        title: "【重要用語20】取得時効（占有開始時の心理状態と必要期間の分岐）",
+        base_statement: "Aが所有する他人の土地を、Bが「俺の土地だ」と本気で信じ込み、そう信じることに一切の落ち度がない状態で自分の庭として使い始めた（善意無過失の占有開始）。<span class=\"judge-underline\">このクリーンな状態で占有を開始した場合</span>、何年間その平穏な使用を継続すれば、Bは時効によって土地の所有権を取得できるか。",
+        tokens: ["他人の土地であっても、", "所有の意思をもって", "平穏かつ公然と占有を続け、", "占有開始時に善意無過失", "であったときは、", "10年間", "経過することで所有権を", "取得する。"],
+        
+        dictionary: [
+            { term: "20. 取得時効（しゅとくじこう）", definition: "他人の物であっても、長期間堂々と使い続けていると、最終的にその所有権を手に入れられる制度です。" },
+            { term: "善意無過失と悪意の期間分岐", definition: "使い始めた最初の瞬間（占有開始時）に、他人の物だと知っていたか（悪意）、あるいは本気で自分の物だと信じ切っていたか（善意無過失）で、必要な年数が「10年」か「20年」かに分かれます。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：占有開始時に『善意無過失』だった場合（本問の正解）", text: "使い始めたその最初の瞬間、他人の土地だとは夢にも思わず、自分の物だと信じていたケース。", sentence_override: "スタート時点で完全クリーン（善意無過失）であれば、必要な期間は【10年間】に短縮される（民法162条2項）。", watershed: "占有スタートが「善意無過失」なら、ご褒美として『10年』で所有権ゲット！", winner: "10年で所有権取得", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】占有開始時に『悪意（または有過失）』だったら？", text: "使い始めた最初の瞬間に「本当はこれ隣のAさんの土地だけど、まぁフェンス立てて俺の庭にしちゃえ」と知っていた（悪意）場合は？", sentence_override: "他人の物だと知っている（悪意）、または有過失の場合は手に入れるのに【20年間】の占有が必要となる（民法162条1項）。", watershed: "スタートが「悪意」または「過失あり」なら、ペナルティとして『20年』かかる！", winner: "20年で所有権取得", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【最重要罠】途中で「他人の土地」だと気づいてしまったら？", text: "最初の3年間は本気で自分の物だと信じていたが、4年目に「あ、これ他人の土地だ」と気づいてしまった。そこからあと何年で時効になる？", sentence_override: "時効の判定は【占有を開始した最初の瞬間】だけで決まる。途中で悪意に変わっても関係なく、最初の瞬間が善意無過失なので【10年間】で時効完成する。", watershed: "途中で真十分に気づいても、最初の瞬間がクリーンなら『10年』のまま！", winner: "トータル10年で取得可能", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『賃貸アパートを20年間借り続ければ時効で自分の物になる』の罠", text: "「毎月家賃を払ってアパートを借りている入居者が、20年間ずっと平穏に住み続ければ、取得時効によって自分の物にできる」という罠。", sentence_override: "取得時効には「所有の意思（自分が持ち主として振る舞うこと）」が必須。借りている（賃借人）という自覚がある以上、時効は【100%成立しない】。", watershed: "「借りている人」の占有には所有の意思がない！何百年住んでも成立しない！", winner: "時効は永久に不成立", is_correct_track: false }
+        ],
+        commentary: "取得時効の年数の仕分けは、**「占有を開始した最初の1秒間の心理状態」**だけで決まります！スタート時に善意無過失なら「10年」、悪意や有過失なら「20年」です。途中で気づいても期間は延びません！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(所有の意思をもって|占有開始時に善意無過失|10年間)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(経過することで所有権を|取得する)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 3) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

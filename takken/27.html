@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 27, next_html: "28",
+        title: "【重要用語27】保証債務（普通の保証人が持つ催告・検索の抗弁権の効力）",
+        base_statement: "AはBからお金を借り、特約なしの「普通の保証人」としてCが身元を保証した。返済期日にAが支払わないため、債権者Bが、いきなり保証人Cのところに借金全額を今すぐ払えと取り立てにやってきた。<span class=\"judge-underline\">普通の保証人Cは、「まずは主たる債務者Aに催告しろ！」と主張して</span>、支払いを一時的に拒絶することができるか。",
+        tokens: ["債権者が保証人に", "債務の履行を請求したとき、", "普通の保証人は、", "まず主たる債務者に", "催告をすべき旨を", "請求することで、", "支払いを一時的に", "拒絶できる。"],
+        
+        dictionary: [
+            { term: "27. 保証債務（ほしょうさいむ）", definition: "主たる債務者が借金を返さないとき、代わりに支払う義務を負う契約です。普通の保証人と、責任が極めて重い「連帯保証人」の2種類があります。" },
+            { term: "催告の抗弁権（さいこくのこうべんけん）", definition: "債権者がいきなり保証人に取り立てに来た際、「俺のところにくる前に、まずは主たる債務者（本人）にしっかり督促（催告）してくれ！」と言い返して突っぱねられる権利です。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：普通の保証人 × 催告の抗弁権の行使（本問の正解）", text: "債権者BがいきなりCに取り立てに来た。普通の保証人Cは「まずは本人Aに請求しろ」と拒絶できる？", sentence_override: "民法第452条のルール。普通の保証人は『催告の抗弁権』を持っているため、債権者Bに対して、まずは主たる債務者Aに請求するよう求めて、自分の支払いを一時的に【拒絶することができる】。", watershed: "普通の保証人なら、まずは本人に請求しろ！と言い返してガード（拒絶）できる！", winner: "保証人Cの勝ち（一時拒絶）", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】「検索の抗弁権」を合わせて使ったら？", text: "債権者Bが「本人Aに督促したけど払わなかったから、やっぱりCさん払って」と再度来たが、本人Aには実は隠し口座や財産があることをCが証明した場合は？", sentence_override: "民法第453条の『検索の抗弁権』。本人Aに返済能力（財産）があり、執行が容易であることを保証人が証明すれば、保証人は支払いを【さらに拒絶することができる】。", watershed: "「まず本人に言え（催告）」を突破されても、「本人の財産を差し押さえろ（検索）」で2段構えのガード！", winner: "保証人Cの勝ち（さらに拒絶）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【超重要対比】これがもし『連帯保証人』だったら？", text: "Cが普通の保証人ではなく、宅建試験で最もよく出る、責任が特大の「連帯保証人」としてサインしていた場合は？", sentence_override: "民法第454条の連帯保証規定。連帯保証人には、催告の抗弁権も検索の抗弁権も【一切認められない】。いきなり言われても1円も拒めず全額払う義務を負う。", watershed: "連帯保証人になったら最後、抗弁権の盾は2枚とも全没収（即弁済義務）！", winner: "連帯保証人Cの完全敗北", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『主たる債務者が行方不明でも催告を強制できる』の罠", text: "「主たる債務者Aが夜逃げして行方不明である場合や、破産手続きを開始しているときでも、普通の保証人は催告の抗弁権で突っぱねられる」という罠。", sentence_override: "本人が行方不明や破産している場合、本人に督促（催告）しても全く意味がない。この場合は例外的に催告の抗弁権は【使えなくなる（すぐ払う義務がある）】ため誤り。", watershed: "本人が夜逃げ・破産している非常事態なら、普通の保証人でも盾は使えない！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "「普通の保証人」には、債権者の理不尽な取り立てから身を守るための強力な盾が2枚用意されています。それが**「まずは本人に請求しろ（催告の抗弁権）」**と、**「本人の隠し財産を先に差し押さえろ（検索の抗弁権）」**です！これらがあるため、普通の保証人は一時的に支払いを突っぱねることができます。しかし、実務や試験で登場するほとんどのケースである「連帯保証人」になると、この強力な2枚の盾が『最初から全没収』されるという、保証・連帯保証の圧倒的な格差を脳に叩き込みましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(債権者が保証人に|普通の保証人は|支払いを一時的に)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(請求することで|拒絶できる|できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 2) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 28, next_html: "29",
+        title: "【重要用語28】連帯保証（連帯保証人への債務免除と相対効の原則）",
+        base_statement: "AはBから借金をし、Cが「連帯保証人」となった。その後、債権者Bが連帯保証人Cに対して「お前はいい奴だから、借金の肩代わり義務をチャラ（免除）にしてやるよ」と意思表示した。<span class=\"judge-underline\">連帯保証人Cに生じた「免除」の効力は</span>、主たる債務者Aの借金にも影響を及ぼし、Aの借金もチャラになるか。それともAの借金は残るか（相対効）。",
+        tokens: ["連帯保証人の1人に", "生じた免除などの事由は、", "原則として", "他の債務者に影響しない", "相対効であるため、", "連帯保証人が免除されても", "主たる債務者Aの債務は", "消滅しない。"],
+        
+        dictionary: [
+            { term: "28. 連帯保証（れんたいほしょう）", definition: "主たる債務者と完全に『連帯』して、全く同じ重さの返済義務を負う契約です。普通の保証人が持っている独自の権利（言い訳の盾）がすべて剥奪されています。" },
+            { term: "相対効の原則（そうたいこうのげんそく）", definition: "連帯債務や連帯保証において、「誰か1人の身に起きた出来事（チャラにされた、破産したなど）は、他の人には一切関係がない（影響を及ぼさない）」という民法上の鉄則です。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：連帯保証人への『免除』× 相対効の原則（本問の正解）", text: "連帯保証人Cだけが借金チャラ（免除）にしてもらった。主たる債務者（本人）Aの借金も自動的に消える？", sentence_override: "民法改正の大重要ポイント。連帯保証人に対する「免除」は完全に【相対効（他の人には関係ない）】。Cが免除されても、主たる債務者Aの借金は1円も減らず【消滅しない】。", watershed: "連帯保証人が優しくされても（免除）、本人の借金はびた一文減らない（相対効）！", winner: "主たる債務者Aの借金は存続", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【法改正ひっかけ】連帯保証人への『請求（裁判）』だったら？", text: "債権者Bが、連帯保証人Cにだけ「金返せ」と裁判を起こして、Cを履行遅滞（タイムオーバーのペナルティ）に陥らせた場合、本人Aも自動的にペナルティを食らう？", sentence_override: "民法改正により、連帯保証人への「履行の請求」も完全に【相対効】に変更された。Cが裁判で訴えられても、本人Aの時効カウントダウンが止まることは【ない】。", watershed: "かつては絶対効だった「請求」も、法改正で完全な『相対効（Aにはノーダメージ）』に変身！", winner: "主たる債務者Aには影響なし", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【絶対効の主役】『相殺（相殺権の行使）』だったら？", text: "連帯保証人Cが、たまたま債権者Bに対して個人的に「別の貸し金」を持っていたため、Bの取り立てに対して「相殺してチャラにするわ！」と相殺を実行したら？", sentence_override: "相殺によって借金は実際にこの世から消滅（弁済と同じ効果）する。Cが相殺した金額の分だけ、主たる債務者Aの借金も【自動的に完全に消滅する（絶対効）】。", watershed: "お金が動く・消える事由（弁済、相殺、更改）だけは、例外なく全員に影響する『絶対効』！", winner: "主たる債務者Aの借金も消滅", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【主従の逆転】『主たる債務者A』が免除されたら？", text: "連帯保証人Cではなく、借金をした本人Aのほうが、債権者Bから「お前はもう返さなくていいよ（免除）」と言われた場合は？", sentence_override: "保証債務の超鉄則『付従性（ふじゅうせい）』。親（主債務）が消えれば、子（保証）も自動的に必ず消える。よってAが免除されればCの義務も【100%消滅する】ため、今回の「逆のパターン」と混同しないよう注意。", watershed: "本人（主）が消えれば保証（従）は消えるが、保証（従）が消えても本人（主）は消えない！", winner: "連帯保証人Cの義務も消滅", is_correct_track: false }
+        ],
+        commentary: "民法の大改正により、連帯保証人・連帯債務人の間で発生する出来事は**「原則としてすべて相対効（他の人には一切影響を及ぼさない）」**という超スッキリしたルールに統一されました！そのため、連帯保証人Cだけが免除されようが、Cだけが裁判で訴えられようが、主たる債務者Aには「1ミリも関係ありません（借金は残る）」。ただし、実際にこの世から借金を消滅させる行為（**弁済・相殺・更改**）だけは、みんなの借金が減る「絶対効」になります。また「主たる債務者A（親）が免除されたら、付従性でC（子）も消える」という主従の上下関係のひっかけに絶対引っかからないように関所を死守しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(連帯保証人の1人に|生じた免除などの事由は|主たる債務者Aの債務は)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(生じない|消滅する|帰属しない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

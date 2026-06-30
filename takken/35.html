@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 35, next_html: "36",
+        title: "【重要用語35】賃貸借契約（オーナーチェンジにおける敷金返還債務の自動承継ルール）",
+        base_statement: "Aは大家であるBからアパートの一室を借り、敷金10万円をBに預けて入居した。その後、大家Bがアパート建物（オーナーの地位）をそっくりそのまま第三者Cに売却し、名義（登記）を移した。その後、Aがアパートを退去することになった。<span class=\"judge-underline\">入居者Aは、新オーナーとなったCに対して</span>、預けていた敷金10万円を返すよう直接請求することができるか。",
+        tokens: ["賃貸建物の所有権が", "第三者Cに移転した場合、", "旧大家Bに預けていた敷金は、", "新オーナーCに", "当然に（自動的に）", "引き継がれるため、", "入居者AはCに対してのみ", "敷金の返還を", "請求できる。"],
+        
+        dictionary: [
+            { term: "35. 敷金（しききん）", definition: "家賃の滞納や、部屋を壊したときの修繕費用に備えて、借主があらかじめ大家に担保として預けておくお金です。退去時に、未払い家賃などを差し引いた残額が戻ってきます。" },
+            { term: "オーナーチェンジ", definition: "入居者が住んだままの状態で、アパートの建物オーナー（大家）だけが別の人に代わる売買手続きのことです。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：大家の交代 ➔ 敷金返還債務の自動承継（本問の正解）", text: "大家がBからCへ代わった後、Aが退去した。敷金を請求する相手はどっち？", sentence_override: "民法第605条の2第4項のルール。オーナーの地位がBからCに移転したとき、敷金に関する権利義務は【当然に新オーナーCへ自動的に引き継がれる】。よってAはCに直接返還を請求できます（旧大家Bは完全に義務から解放されます）。", watershed: "オーナーチェンジが起きたら、敷金義務は新オーナーCに『自動スライド（自動承継）』！", winner: "新オーナーCへ請求可能", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『旧大家Bに請求しなければならない』の罠", text: "選択肢が「敷金は元々Bに現金で手渡したものであるから、オーナーが代わったとしても、Aは旧大家Bに対して請求しなければならない」と主張してきたら？", sentence_override: "承継によりBの義務は完全に消滅しているため、Bに請求することは【できなくなります】。よってこの記述は完全に誤りです。", watershed: "手渡した相手が誰であれ、法的な義務は新オーナーに移るため、旧大家Bはノーカウント！", winner: "旧大家Bへの請求は不可", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【最重要順番】『敷金返還』と『部屋の明渡し』どちらが先？", text: "退去することになったAが、新大家Cに対して「敷金を今すぐ返してくれるなら、部屋の鍵を渡して出ていってやる」と同時履行を主張したら？", sentence_override: "最高裁の確立された判例。順番は【部屋の明渡しが先（先履行）】。部屋を綺麗に明け渡してもらい、中のダメージを確認して初めて敷金額が確定するため、同時履行の主張は認められません。", watershed: "「鍵を返す（明渡し）」のが先！「敷金を返す」のはその後！", winner: "新大家Cの勝ち（明渡しが先）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【逆のケース】『入居者（賃借人）の交代（権利の譲渡）』だったら？", text: "大家が代わったのではなく、入居者Aが大家の許可を得て、自分の部屋に住む権利（賃借権）を友人Xに譲り渡して退去した。Aが預けていた敷金は自動的に友人Xに移る？", sentence_override: "入居者の交代の場合は自動的に引き継がれません。敷金はあくまでAの個人口座に戻され、新しいXは【自分で新しく敷金を大家に預け直す義務】を負うため、本問とは真逆になります。", watershed: "大家の交代＝敷金は自動承継！入居者の交代＝敷金は自動承継しない（リセット）！", winner: "敷金はAに戻る（承継しない）", is_correct_track: false }
+        ],
+        commentary: "賃貸借におけるオーナーチェンジ（大家の交代）が起きた場合、それまでに入居者が預けていた敷金は、**「新オーナー（C）へ問答無用で自動的に引き継がれる（当然承継）」**という鉄のルールを覚えましょう！そのため、旧大家のBは敷金を返す義務から完全に解放され、退去するAは新オーナーCに対してのみ「敷金を返せ」と請求することになります。ただし、**「入居者の交代」の場合は敷金は自動承継されない**という真逆のトラップ、および**「敷金の返還よりも部屋の明渡しが先（先履行）」**という超重要ルールを3点一括で仕分けるのが、この単元の完全な分水嶺です！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(賃貸建物の所有権が|旧大家Bに預けていた敷金は|入居者AはCに対してのみ)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(引き継がれるため|請求できる|できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

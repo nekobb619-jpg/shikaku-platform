@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 33, next_html: "34",
+        title: "【重要用語33】契約不適合責任（不適合を知った時からの期間制限ルール）",
+        base_statement: "買主Aは、売主Bから中古の一戸建て住宅を購入し引き渡しを受けた。数ヶ月後、Aは屋根から激しい雨漏りが発生しているのを発見した（品質の不適合）。しかし、Aは仕事が忙しく、雨漏りを発見してから「1年2ヶ月」が経過した時点で、初めて売主Bに対して「雨漏りを見つけたから修理しろ、または金を引け」と文句（通知）を言った。<span class=\"judge-underline\">この場合、買主Aによる責任追及の請求は</span>有効に認められるか。",
+        tokens: ["買主が", "種類または品質に関する", "不適合を知った時から", "1年以内に", "その旨を売主に", "通知しないときは、", "買主はその不適合を理由とする", "権利の請求をすることができない。"],
+        
+        dictionary: [
+            { term: "33. 契約不適合責任（けいやくふてきごうせきにん）", definition: "引き渡された目的物が、契約書に書かれた『種類・品質・数量』と一致していない（欠陥がある）場合に、売主が負うべきペナルティ責任のことです。" },
+            { term: "通知（つうち）", definition: "売主に対して『ここにこんな欠陥（雨漏りなど）がありましたよ！』と事実を伝える連絡のことです。大掛かりな裁判手続きまでは1年以内に求める必要はありません。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：品質の雨漏り × 発見から1年2ヶ月後に初めて通知（本問の正解）", text: "引き渡された建物の『品質（雨漏り）』に重大な不適合を発見した買主Aが、発見から1年を超えて通知した場合は？", sentence_override: "期間制限の原則。種類・品質の不適合は、買主が【知った時から1年以内】に通知をしなければ権利が消滅する。よって1年2ヶ月後の通知では【請求することができない】。", watershed: "欠陥を『知った時』からカウントダウン開始！1年以内にダッシュで通知しなければアウト！", winner: "買主の請求権は完全に消滅", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【数量不足】土地の面積が契約より「30平米」も狭かったら？", text: "品質の不良ではなく、『土地の面積が契約書より大幅に狭い（数量の不適合）』という欠陥を発見した場合の期間制限は？", sentence_override: "数量・権利の例外。数量不足や他人の権利が混ざっていた不適合については【1年以内の通知ルールは適用されない】。通常の時効（知ってから5年）までじっくり請求できる。", watershed: "『数が足りない（数量）』『他人の土地だった（権利）』なら、1年のスピード制限はかからない！", winner: "1年が経過した後でも請求有効", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【売主が悪党】売主B自身が、売る前から「雨漏りする」と知っていたら？", text: "買主Aが発見から1年2ヶ月後に通知したが、実は売主Bは最初からその雨漏りを知っていながら黙って売りつけていた場合は？", sentence_override: "悪意・重過失の特例。売主が引き渡し時に不適合について【悪意（知っていた）または重過失】であったときは、1年以内の通知がなくても【買主は守られ、請求が認められる】。", watershed: "欠陥を知ってて黙ってた悪い売主（悪意）なら、買主が1年遅れて通知しても一切言い訳できない！", winner: "1年を過ぎても買主は100%請求可能", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：【請求のレベル】1年以内に「具体的な修理代の裁判」まで起こさなきゃダメ？", text: "買主Aは雨漏りを発見して3ヶ月後に「雨漏りを発見しました」と手紙（通知）を出したが、具体的な裁判や金額交渉は1年半後にスタートした場合は？", sentence_override: "通知の定義。1年以内にすべきなのは『不適合がある旨の通知』だけで十分。【具体的な権利行使（裁判等）】まで1年以内に完了させる必要は【ない】。", watershed: "1年以内にすべきは『欠陥の報告（通知）』だけでセーフ！金額のガチ交渉は後からでOK！", winner: "通知が1年以内なら請求は完全有効", is_correct_track: false }
+        ],
+        commentary: "民法の大改正で「瑕疵担保責任」から生まれ変わった超最重要テーマ、契約不適合責任です！特に試験で狙われるのがこの『1年以内の通知』の縛りです。目的物の**「種類」または「品質」**に不適合があった場合は、買主がそれを**「知った時（発見した時）」から1年以内**に売主へ通知を入れなければ、一切の請求権を失います。したがって、知ってから1年2ヶ月も放置したAは完全にアウトです。ただし、**「数量不足・権利の不適合」**の場合は売主が書類等で容易に確認できるため1年の縛りがないこと、また売主が最初から欠陥を知っていた**「悪意・重過失」**のときは買主が1年を過ぎて通知しても救済されるという2大例外パターンを確実に脳内に叩き込んでおきましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(買主が|不適合を知った時から|その旨を)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(通知しないときは|請求をすることができない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

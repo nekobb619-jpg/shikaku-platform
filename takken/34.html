@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 34, next_html: "35",
+        title: "【重要用語34】売買手付（手付放棄・倍額償還による解除の限界点と履行の着手）",
+        base_statement: "AはBに土地を売却し、Bから手付金を受け取った。その後、買主Bが「引越業者を手配し、売買代金の全額を銀行に用意してAに受領を催告した（履行の着手）」。<span class=\"judge-underline\">買主Bが自ら履行に着手した後に、売主Aの側から</span>手付金の倍額を返還することによって、一方的に契約を解除することができるか。",
+        tokens: ["手付による解除は、", "契約の相手方が", "履行に着手する前まで", "可能であるため、", "買主Bがすでに", "履行に着手しているときは、", "売主Aから手付倍返しによる", "解除をすることは", "できない。"],
+        
+        dictionary: [
+            { term: "34. 解約手付（かいやくてつけ）", definition: "売買契約を結ぶ際に、相手に預けるお金です。特約がない限り「解約手付」とみなされ、買主はそれを「諦める（手付放棄）」、売主は「倍にして返す（倍額償還）」ことで、理由がなくても一方的に契約を白紙に戻せます。" },
+            { term: "履行の着手（りこうのちゃくし）", definition: "単に「準備した」だけではなく、客観的に契約の実行（代金の支払い、物の引き渡し手続きなど）に踏み切った状態を指します。これが手付解除のタイムリミットになります。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：相手方が履行に着手 ➔ 自分が解除したい（本問の正解）", text: "買主Bがすでに大金を準備して「受け取れ」と履行に着手した。売主Aから倍返しで解除できる？", sentence_override: "民法第557条1項。手付解除ができるのは「相手方が履行に着手するまで」です。今回のケースでは相手方であるBがすでに履行に着手しているため、売主Aは【手付解除をすることができません】。", watershed: "手付解除のタイムリミットは『相手が履行に着手するまで』！着手されたら盾は使えない！", winner: "売主Aからの解除は不可能", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：自分が履行に着手 ➔ 自分が解除したい（逆張りの罠）", text: "売主Aはまだ何も始めていないが、買主Bが「自分自身で」引越業者を手配した（自ら履行に着手）。この状態で、買主B自身が手付金を諦めて契約を解除することはできる？", sentence_override: "条文の制限はあくまで「相手方が着手するまで」。「自分が着手したかどうか」は関係ないため、相手方Aがまだ何もしていないなら、買主Bは【手付を放棄していつでも解除することができます】。", watershed: "自分がどれだけ着手していようが、相手がまだなら手付解除は100%可能！", winner: "買主Bからの解除は可能", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【宅建業法への伏線】売主がプロ（宅建業者）、買主が一般人のケース", text: "売主Aが宅建業者で、買主Bが一般人の場合、手付解除の期限を「契約後1週間以内に限る」という特約を結んだら？", sentence_override: "宅建業法第39条（手付の特約制限）。一般の買主に不利な期間短縮特約は無効となります。買主Bは【相手方が履行に着手するまでいつでも手付解除できます】。", watershed: "プロアマ取引（業法8種制限）では、買主に不利な手付解除の期間制限特約は一発無効！", winner: "特約は無効（法律ルールが復活）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『手付解除をされたら、相手に損害賠償を請求できる』の罠", text: "「相手から急に手付解除を告げられた売主Aは、予定が狂って大損害を被ったため、手付金とは別に損害賠償を上乗せ請求できる」という罠。", sentence_override: "手付解除は法的に認められたクリーンなペナルティによる撤退。民法557条2項により【損害賠償の請求は一切できない】ため、この記述は誤りとなります。", watershed: "手付の没収・倍返しだけで手打ち！上乗せの損害賠償請求は永久に不可！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "手付解除（やっぱり契約やめた！）のタイムリミットは、**「契約の相手方が履行に着手するまで」**という超鉄板ルールを絶対に仕分けましょう！本問では「買主B（相手方）」がすでに全額を用意して履行に着手してしまっているため、出遅れた売主Aの負けとなり、いくら倍の金を積んでも一方的な解除は不可能になります。ただし、「自分が着手していても、相手がまだなら手付解除できる」という引っ掛けパターンが本試験の最大地雷ですので、主語がどちらにあるかを強烈に意識してください！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(手付による解除は|相手方が|売主Aから手付倍返しによる)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できない|可能であるため|することは)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

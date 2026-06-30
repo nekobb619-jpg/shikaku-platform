@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 15, next_html: "16",
+        title: "【重要用語15】表見代理（本人に落ち度がある無権代理の責任）",
+        base_statement: "AはBに白紙の委任状を預けていた。Bはそれを悪用してAの土地をCに売却してしまった。実質的には無権代理だが、Aにも委任状を放置した落ち度がある。<span class=\"judge-underline\">相手方Cが、Bに代理権があると信じるに足りる正当な理由（善意無過失）がある場合</span>、AはCに対して売買契約の有効（効果の帰属）を強制されるか。",
+        tokens: ["本人にも落ち度がある", "表見代理が成立するとき、", "相手方Cが", "善意無過失であれば、", "有権代理と同様に", "本人Aに対して", "契約の効果が", "帰属する。"],
+        
+        dictionary: [
+            { term: "15. 表見代理（ひょうけんだいり）", definition: "無権代理の一種。本人にもかなり原因（委任状放置など）がある場合、信じた相手方を守るため例外的に契約を有効にする制度。" },
+            { term: "善意無過失（ぜんいむかしつ）", definition: "相手方Cが「本当に代理権があるんだ」と信じ、そう信じたことについて一切不注意や落ち度がない状態。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：表見代理の成立要件 × 相手方が善意無過失（本問の正解）", text: "Aが預けた白紙委任状を見て、CはBを本物の代理人だと信じきって取引したケース。", sentence_override: "表見代理の要件をクリア。相手方が善意無過失なら【本人Aに契約の効果が強制的に帰属する】ため、Aは拒否できない（Cの勝ち）。", watershed: "本人の落ち度＋相手方の善意無過失＝有権代理と同じく強制有効！", winner: "相手方Cの勝ち", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】もし相手方Cに「過失（不注意）」があったら？", text: "委任状が怪しい点だらけだったのに、Cがろくに確認しなかった場合は？", sentence_override: "表見代理で相手方が保護されるには「善意無過失」が必須。Cに過失（有過失）があるなら【表見代理は成立せず、ただの無権代理として無効】になる。", watershed: "相手方に少しでも「過失（不注意）」があれば、表見代理は不発！", winner: "本人Aの勝ち", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：表見代理が成立した時、本人がBに怒りをぶつけたら？", text: "Cに土地を奪われる羽目になった本人A。勝手に悪用したBに損害賠償を請求することは可能？", sentence_override: "表見代理はCを守るための制度。A-B間は完全な裏切り行為なので、AはBに対して【不法行為や債務不履行で牙をむくことができる】。", watershed: "Cに対しては言い訳できないが、裏切ったBにはきっちり責任を取らせる！", winner: "Bへ損害賠償請求可能", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『表見代理は本人が進んで主張しなければ発動しない』の罠", text: "「表見代理の責任を負うかどうかは、本人Aの側が認める意思表示をしない限り発動しない」という罠。", sentence_override: "表見代理は「相手方C」が本人を訴えるための武器。本人の意思に関わらず、Cからの主張によって【強制的に発動する】ため誤り。", watershed: "表見代理のトリガーを引くのは、本人ではなく「相手方C」！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "表見代理は「形は無権代理だけど、本人Aにも原因があるから、信じた相手方Cを勝たせてあげよう」という大逆転の制度です！相手方Cが【善意無過失】という鉄壁のクリーンステータスであれば、本人Aは言い訳できず、契約を強制的に成立させられます！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(本人にも落ち度がある|相手方Cが|契約の効果が)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(帰属する|帰属しない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

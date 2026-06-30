@@ -1,0 +1,30 @@
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-user-select: none; user-select: none; }
+body { font-family: -apple-system, sans-serif; background-color: #121214; color: #ffffff; padding: 16px; padding-bottom: 20px; }
+.exam-label { display: inline-block; background: #ff9f0a; color: #000; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 3px; margin-bottom: 6px; }
+.stage-title { font-size: 16px; color: #ff9f0a; font-weight: bold; margin-bottom: 6px; }
+.problem-statement { font-size: 16px; line-height: 1.6; color: #ffffff; margin-bottom: 14px; }
+.judge-underline { color: #30d158; font-weight: bold; border-bottom: 3px solid #30d158; padding-bottom: 2px; }
+.slash-sentence-container { background: #1e1e24; border: 2px solid #3a3a45; border-radius: 12px; padding: 18px; line-height: 2.8; font-size: 18px; margin-bottom: 15px; }
+.word-token { display: inline-block; padding: 0 4px; border-radius: 6px; cursor: pointer; position: relative; }
+.word-token.mark-subject { border: 2px solid #30d158; background: rgba(48, 209, 88, 0.2); }
+.word-token.mark-subject::after { content: "【主語】"; position: absolute; top: -18px; left: 0; font-size: 9px; color: #30d158; }
+.word-token.mark-end { border: 2px solid #ff453a; background: rgba(255, 69, 58, 0.2); }
+.word-token.mark-end::after { content: "【結論】"; position: absolute; top: -18px; left: 0; font-size: 9px; color: #ff453a; }
+.word-token.extreme-warning { background: #ff9f0a; color: #000; font-weight: bold; }
+.slash-trigger { display: inline-block; width: 20px; text-align: center; color: #4a4a5a; font-weight: bold; cursor: pointer; }
+.slash-trigger.active { color: #ff9f0a; font-size: 22px; font-weight: 900; }
+.nuance-grid { display: flex; flex-direction: column; gap: 14px; }
+.nuance-card { background: #1a1a1e; border: 2px solid #2c2c35; border-radius: 8px; padding: 14px; cursor: pointer; }
+.nuance-card.selected { border-color: #ff9f0a; background: #221e1a; }
+.nuance-header { font-size: 15px; font-weight: bold; color: #ff9f0a; margin-bottom: 6px; }
+.nav-text { font-size: 16px; line-height: 1.5; color: #e5e5ea; }
+.card-inner-board { margin-top: 12px; background: #151518; border: 1px solid #ff9f0a; border-radius: 6px; padding: 12px; display: none; }
+.nuance-card.selected .card-inner-board { display: block; }
+.watershed-container { background: #2a1616; border: 1px dashed #ff453a; padding: 10px; border-radius: 6px; margin: 10px 0; text-align: center; }
+.watershed-keyword { font-size: 19px; color: #ff453a; font-weight: 900; }
+.board-flex { display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px solid #3a3a45; }
+.win-badge { color: #000; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 4px; }
+.dict-section-title { font-size: 14px; color: #8a8a93; margin: 20px 0 8px 0; font-weight: bold; }
+.term-accordion { background: #1a1a1e; border-radius: 8px; margin-bottom: 6px; border: 1px solid #2c2c35; }
+.term-header { padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+.term-body { padding: 12px; font-size: 13px; color: #aaa; line-height: 1.5; display: none; background: #141418; border-top: 1px solid #2c2c35; }

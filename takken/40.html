@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 40, next_html: "1", // 40番の次は1番に戻る、または全体のクリア演出へ
+        title: "【重要用語40】区分所有法（集会における規約変更の特別多数決要件）",
+        base_statement: "分譲マンションの管理組合において、ペットの飼育を全面的に禁止するために「管理規約を変更する」という重大な議題が集会に提出された。<span class=\"judge-underline\">規約の変更を有効に成立させるためには</span>、区分所有者および議決権のそれぞれどれくらいの多数決（議決）が必要となるか。",
+        tokens: ["マンションの管理規約を", "変更・設定・廃止するには、", "集会において、", "区分所有者および議決権の", "それぞれ4分の3以上の", "多数による決議が", "絶対に必要である。"],
+        
+        dictionary: [
+            { term: "40. 区分所有法（くぶんしょゆうほう）", definition: "分譲マンションなどのように、1棟の建物をバラバラに区切って複数の人で所有する場合の、お互いのルール（規約）や管理方法を定めた法律です。" },
+            { term: "特別決議（とくべつけつぎ）", definition: "規約の変更や、建物の大規模な修繕など、マンション全体のルールをガラリと変える重大事項のときに要求される、ハードルの高い多数決（4分の3以上）のことです。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：管理規約の変更 ➔ 特別特別決議（本問の正解）", text: "マンション全体のルールブックである「管理規約」を新しく作ったり、書き換える場合の多数決ハードルは？", sentence_override: "区分所有法第31条1項。規約の変更・設定・廃止は非常に重大。そのため、区分所有者の人数【および】議決権（持分）のそれぞれ【4分の3以上】の賛成が絶対要件となります。", watershed: "規約変更は「4分の3以上」のダブルクリア（人数＆議決権の両方）が必須！", winner: "4分の3以上の特別決議が必要", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】「過半数（普通の多数決）」で決められる議題は？", text: "規約の変更ではなく、「来月のエレベーター定期点検の会社を変更する」といった日常の普通管理事項だったら？", sentence_override: "通常の事務や一般的な管理事項（普通決議）であれば、ハードルは低く【過半数（2分の1を超える賛成）】だけで有効に成立します。", watershed: "日常のゴミ出しや点検は『過失数（過半数）』、重大なルール変更は『4分の3以上』！", winner: "過半数の普通決議でOK", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【最凶難所】『マンションの建て替え（取り壊して新築）』だったら？", text: "規約変更を遥かに凌駕する、マンション経営の最大イベント「ボロくなったから全員で建て替えよう（建替え決議）」のときのハードルは？", sentence_override: "区分所有法62条1項。建て替えだけは全財産が吹き飛ぶ超ウルトラ重大事項。ハードルは最高峰の【5分の4以上】の賛成が必要となる。", watershed: "規約変更は『4分の3』だが、建て替えだけは区分所有法最高の『5分の4』！", winner: "5分の4以上の超特別決議が必要", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『区分所有者の人数「または」議決権の片方が4分の3ならOK』の罠", text: "「金持ちのオーナーが議決権の4分の3を握っていれば、住人の人数（区分所有者数）の賛成が足りなくても規約を変えられる」という罠。", sentence_override: "条文上は「かつ（および）」で結ばれている。人数も4分の3、議決権も4分の3の【両方を同時に満たさなければならない】ため、片方だけでOKとする記述は誤り。", watershed: "「または（どっちか片方）」の言葉のすり替え罠に厳重警戒！両方クリアが絶対！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "区分所有法（マンション法）の仕分けの関所は、**「その議題の重大さのレベル（グラデーション）」**です！日常のちょっとした管理は**「過半数（2分の1超）」**、今回のテーマである『管理規約の変更』や『大規模修繕』などの大改革は**「4分の3以上（特別決議）」**、そして人生最大のイベントである『マンションの建て替え』のときだけは最高難度の**「5分の4以上」**が必要になります。試験ではこの「過半数」「4分3」「5分の4」の数字のシャッフル、および人数「と」議決権の「かつ・または」のすり替えが100%出題されます。完璧に仕分けて関所を突破しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(マンションの管理規約を|区分所有者および議決権の|4分の3以上の)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(必要である|決決議が|ない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

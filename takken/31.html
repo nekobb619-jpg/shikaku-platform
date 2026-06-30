@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 31, next_html: "32",
+        title: "【重要用語31】債権譲渡（二重譲渡における譲受人同士の優劣と確定日付の罠）",
+        base_statement: "AはBに対する100万円の貸付金債権を、Cに売却（譲渡）し、さらにDにも重ねて売却（二重譲渡）した。Aは、Cへの譲渡については「5月1日の確定日付のない普通のハガキ」で債務者Bに通知し、Dへの譲渡については「5月10日の確定日付のある内容証明郵便」でBに通知した。通知はCの方が先にBへ届いた。<span class=\"judge-underline\">確定日付のある通知を得た譲受人Dに対して</span>、先に通知が届いていたCは自分が真の債権者だと主張できるか。",
+        tokens: ["債権の二重譲渡において、", "譲受人同士の優劣は、", "確定日付のある通知が", "債務者に届いた日時の", "先後によって決まるため、", "確定日付のない通知しか得ていないCは", "Dに対して権利を", "対抗することが", "できない。"],
+        
+        dictionary: [
+            { term: "31. 確定日付のある通知（かくていひづけ）", definition: "内容証明郵便や公証役場のスタンプのように、後から「この日に確かにその書類が存在した」と国が100%証明できる日付のことです。債権譲渡をライバル（第三者）に自慢するための絶対要件です。" },
+            { term: "債権の二重譲渡（さいけんのにじゅうじょうど）", definition: "目に見えない「売掛金」や「貸付金」というお金を請求できる権利を、別々の二人（CとD）に重ねて売り飛ばしてしまうことです。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：確定日付なし（先着） vs 確定日付あり（後着）（本問の正解）", text: "ハガキ通知は先にBに届いたが、内容証明（確定日付あり）は遅れてBに届いた。CとD、勝つのはどっち？", sentence_override: "民法第467条2項のルール。第三者（ライバルD）に対抗するには「確定日付のある通知」が絶対に必須。Cの通知はどれだけ早く届いても普通のハガキ（確定日付なし）なので、確定日付をゲットしたDの【完全勝利（Cは対抗できない）】となります。", watershed: "確定日付の『あり』と『なし』の戦いなら、日付のある郵便を得たDが問答無用で勝利！", winner: "確定日付のあるDの勝ち", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【最重要罠】『どちらも確定日付のある内容証明』で競争したら？", text: "Cへの譲渡も、Dへの譲渡も、どちらも「確定日付のある内容証明」でBに通知され、Cの郵便の方が一歩早くBの自宅に配達された場合は？", sentence_override: "最高裁の超頻出判例。両方に確定日付がある場合、勝敗を決めるのは書類に押された日付の早さではなく、【債務者Bの元に『通知がリアルタイムに届いた日時』の先後】で決まる。先に届いたCの勝ち。", watershed: "日付あり同士の頂上決戦なら、書類の日付ではなく『債務者に届いた瞬間の早さ』で決まる！", winner: "先に通知が届いたCの勝ち", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【対比】通知が届く前に、債務者B自身が「承諾」をしていたら？", text: "AからCへの譲渡について、AがBに電話したところ、Bが「あ、Cさんに払えばいいんですね、了解です（普通の承諾）」と答えていた場合は？", sentence_override: "債務者B本人に対する関係（対抗要件）であれば、確定日付などなくても「普通の通知・承諾」だけで有効。BはCからの取り立てを【拒むことができなくなる】。", watershed: "相手が『債務者本人』なら普通のハガキや口頭でOK！ライバル（第三者）が相手のときだけ確定日付が必要！", winner: "譲受人Cの勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『郵便局の発送消印があれば確定日付になる』の罠", text: "「普通の郵便ハガキであっても、郵便局の丸い消印スタンプが押されていれば、それが確定日付としてライバルに勝てる」という罠。", sentence_override: "郵便局の通常の消印は、法律上の「確定日付」には含まれない。内容証明郵便の確定日印でなければ【対抗要件にならない】ため誤り。", watershed: "タダの消印はノーカウント！「内容証明郵便」こそが確定日付の王様！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "債権譲渡のライバル対決（二重譲渡）を仕分ける関所は2つあります！まず第1の関所は、**「確定日付（内容証明など）があるかないか」**です。片方が普通のハガキ（日付なし）、片方が内容証明（日付あり）なら、届いた順番に関係なく、**「確定日付のある通知を得た側」**が完全勝利します。そして第2の関所として、もし「どちらも内容証明（日付あり）」で戦ってきた場合は、書類の作成日ではなく**「債務者Bの元にどちらの郵便が1秒でも早く配達されたか（到達日時の先後）」**で勝敗が決まります。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(債権の二重譲渡において|譲受人同士の優劣は|確定日付のない通知しか得ていないCは)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できない|決まるため|対抗することが)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

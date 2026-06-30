@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 7, next_html: "8",
+        title: "【重要用語7】取消（制限行為能力者・取消の遡及効）",
+        base_statement: "未成年者が親権者の同意を得ずに土地を売却する契約を結び、後からその契約を取り消した。<span class=\"judge-underline\">取り消された契約は</span>、取り消した時から将来に向かって無効となるか、それとも最初から無効であったとみなされるか。",
+        tokens: ["取り消された契約は", "最初から", "無効であったものと", "みなされるため", "契約時にさかのぼって", "法律上の効果が", "完全に消滅する。"],
+        
+        dictionary: [
+            { term: "7. 取消（とりけし）", definition: "一度有効に成立した契約を、問題（未成年、詐欺、強迫など）があることを理由に、後から「ナシ」にすること。取り消すと「最初から無効（ゼロ）」だった状態にリセットされます。" },
+            { term: "遡及効（そきゅうこう）", definition: "法律の効果が、過去の時点（契約を結んだ日など）まで遡って適用されること。取消をすると、契約日にタイムスリップして最初から無効になります。" },
+            { term: "制限行為能力者（せいげんこういのうりょくしゃ）", definition: "未成年者、成年被後見人、被保佐人、被補助人のこと。判断能力が不十分なため、単独で行った不利な契約を後から「取消」できる特権が国から与えられています。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：【将来効のひっかけ】『取り消した時から将来に向かって無効』？", text: "選択肢が「取り消された契約は、取り消しの意思表示をした時から将来に向かってその効力を失う」と主張してきたパターン。", sentence_override: "取消の効果は将来に向かってではなく、契約時まで過去にさかのぼる（遡及効）。そのため「将来に向かって無効」とする選択肢は【誤り】となる。", watershed: "「将来に向かって無効」ではなく「最初から（過去にさかのぼって）無効」！", winner: "ひっかけ文章", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：契約の取消 × 最初から無効（本問の正解）", text: "未成年者が行った契約を適法に取り消した。その契約はいつの時点から無効としてジャッジされる？", sentence_override: "民法第121条により、取り消された契約は【最初から無効であったものとみなされる】（遡及적無効ルール）。", watershed: "取消が成立すると、契約日にさかのぼって『最初から無効』に固定！", winner: "最初から無効", is_correct_track: true },
+            { id: 3, label: "🔍 パターンC：【対比ケース】『賃貸借契約の解除（終了）』だったら？", text: "売買契約の「取消」ではなく、アパートを借りる【賃貸借契約を途中で解除】したストーリーだったら？", sentence_override: "賃貸借や雇用のような継続的契約の解除は、過去にさかのぼらず【将来に向かってのみ効力を失う】（将来効）。過去の家賃を返す必要はない。", watershed: "売買の取消は『最初から無効』、賃貸の解除は『将来に向かって無効』！", winner: "将来に向かって無効", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：制限行為能力者の取消 × 善意無過失の第三者", text: "未成年者Aが親に内緒でBに売り、Bが事情を知らないピュアなC（善意無過失）に転売した。AはCから土地を回収できるか？", sentence_override: "制限行為能力者を保護するルールは絶対最強。第三者Cがどれだけ善意無過失であっても、未成年者AはCに取消を対抗して土地を【取り戻すことができる】。", watershed: "未成年者保護は詐欺より強い！善意無過失のCにも100%勝てる！", winner: "未成年者Aの勝ち", is_correct_track: false }
+        ],
+        commentary: "売買契約の『取消』の効果は、**「最初から（契約した時点にさかのぼって）無効だったものとみなされる（遡及効）」**という大原則を絶対に覚えましょう！試験ではここを将来効にすり替えるのがお決まりのパターンです。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(取り消された契約は|最初から|契約時にさかのぼって)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(みなされるため|消滅する)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 2) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

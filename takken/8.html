@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 8, next_html: "9",
+        title: "【重要用語8】追認（詐欺契約と追認の有効要件）",
+        base_statement: "AはBにだまされて土地を売却した。<span class=\"judge-underline\">Aがまだだまされている状態のまま（詐欺の事実から脱する前）</span>に、Bに対して「あの売買を認めます」と追認した場合、その追認は有効となり、Aはもう契約を取り消せなくなるか。",
+        tokens: ["詐欺による契約の", "追認については、", "だまされている状態から", "脱した後に", "行わなければ", "その効力を", "生じない。"],
+        
+        dictionary: [
+            { term: "8. 追認（ついにん）", definition: "後から「オッケー」と不完全な契約を認めること。追認した後は、契約は完全に有効（確定）となり、もう二度と「取消」を主張することができなくなります。" },
+            { term: "取消権の消滅（とりけしけんのしょうめつ）", definition: "追認をすると、持っていた「取り消す権利」が消滅します。また、追認できる時から5年間行使しないか、契約の時から20年が経っても時効で消滅します。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：だまされている最中の追認（本問の正解）", text: "だまされた被害者Aが、まだ嘘に気づいておらず【だまされている真っ最中】にオッケーを出した場合、それは追認として認められる？", sentence_override: "民法第124条により、追認は【取消しの原因となった状況が消滅した後】にしなければ効力を生じない。よって騙されている最中の追認は【無効】である。", watershed: "状況が消滅する前（だまされている最中）の追認は『効果ゼロ（無効）』！", winner: "追認は無効", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：だまされていることに気づいた後の追認なら？", text: "被害者Aが「ハッ！騙されていたのか！」と真実を知り、【詐欺から覚めた後】に「まぁ契約を認めてやるよ」と意思表示したら？", sentence_override: "取消の原因（詐欺状態）が完全に消滅した後の追認なので、文句なしに【完全に有効】となる。以後、Aはもう取り消せなくなる。", watershed: "詐欺から覚めた後（状況消滅後）の追認は『100%有効確定』！", winner: "契約が有効に確定", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【対比ケース】『法定代理人（親）』が追認する場合は？", text: "未成年者本人がまだ子供のままであっても、その状況に関係なく【親（法定代理人）】が代わりに後から契約を追認した場合はどうなる？", sentence_override: "法定代理人や保佐人などの保護者は、本人の状況消滅（大人になるなど）を待つ必要がない。いつでも【状況消滅前であっても有効に追認できる】。", watershed: "保護者（親）の追認は、本人が子供のままでも『いつでも有効』！", winner: "有効に確定", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『追認をすればいかなる無効契約も最初から有効になる』の罠は？", text: "「すべての無効な契約は、当事者が追認をすれば一律に契約の日にさかのぼって最初から有効になる」と押し切ってきたパターン。", sentence_override: "前問の公序良俗違反のように、追認しても絶対に有効にならない無効契約があるため、この記述は100%【誤り】となる。", watershed: "無効と取消の混同罠！（絶対的無効はいくら追認しても無駄）", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "『追認』の急所は、「取消の原因となった状況が消滅した後にやらなければ無効」という鉄則です！だまされている最中の人はまだ真実を知らないため、その状態での追認は被害者保護のためノーカウント（無効）になります。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(追認については|だまされている状態から|その効力を)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(行わなければ|生じない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

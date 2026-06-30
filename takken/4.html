@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 4, next_html: "5",
+        title: "【重要用語4】善意無過失（詐欺取消と無敵の第三者要件）",
+        base_statement: "AはBにだまされて（詐欺）土地を売却し、Bがその事情を知らないCに転売した。<span class=\"judge-underline\">Cにうっかり不注意（過失）があった場合</span>、AはBの詐欺による契約取消をCに対して主張して土地を取り戻すことができるか。",
+        tokens: ["AがBの詐欺を理由に", "売買契約を取り消した", "場合であっても、", "Cが知らないことに", "過失がある（有過失）", "ときには、", "AはCに対して土地の返還を", "請求することができる。"],
+        
+        dictionary: [
+            { term: "4. 善意無過失（ぜんいむかしつ）", definition: "事情を知らない（善意）ことについて、一切の不注意や落ち度がない（無過失）という最強にクリーンな状態。" },
+            { term: "詐欺取消", definition: "だまされて結んだ契約をナシにすること。だまされた側にも落ち度があるため、善意無過失の第三者には勝てません。" },
+            { term: "強迫取消", definition: "脅されて無理やり結ばされた契約をナシにすること。被害者に非が一切ないので、第三者が善意無過失でも100%取り戻せます。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：【対比ケース】これがもし『強迫（脅された）』だったら？", text: "詐欺（だまされた）ではなく、Bに脅しをかけられてCに転売されたストーリーだったら？", sentence_override: "強迫による取消は絶対最強。第三者Cがどれほどクリーンな善意無過失でも、脅されたAは土地を取り戻せる。", watershed: "強迫テーマなら、Cが善意無過失でもAの100%勝ち！", winner: "被害者Aの勝ち", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：【無敵保護】第三者Cが完全クリーンな善意無過失なら？", text: "第三者CがBの詐欺について何も知らず、落ち度も一切ない【善意無過失】だったら？", sentence_override: "詐欺取消は善意無過失の第三者に対抗できない。Aに落ち度がある以上、クリーンなCから土地を取り戻せない。", watershed: "Cが『善意無過失』なら、騙されたAでもなぎ倒してCの勝ち！", winner: "第三者Cの勝ち", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：詐欺 × 第三者が善意有過失（本問の正解）", text: "第三者Cは事情を知らなかったが、少し調べれば分かったはずの【うっかり不注意（過失）】があったら？", sentence_override: "詐欺から保護されるには『善意無過失』が必要。Cに過失（落ち度）があるなら、騙された被害者Aが勝利して請求できる。", watershed: "Cに『過失（落ち度）』があるなら被害者Aの逆転勝ち！", winner: "被害者Aの勝ち（土地奪還）", is_correct_track: true },
+            { id: 4, label: "🔍 パターンD：『善意の第三者であれば一律に一切請求できない』の罠は？", text: "「事情を知らない善意の第三者が現れたときは、いかなる場合でも取り戻せない」と言い切ってきたら？", sentence_override: "今回のようにCに過失があるときは取り戻せるため、一律に取り戻せないとする記述は誤り。", watershed: "善意『だけ』で無敵になるのは虚偽表示だけ！（詐欺は無過失まで必要）", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "だまされた『詐欺』の被害者は、何も知らずに不注意もなかった『善意無過失の第三者C』には勝てません（騙された側にも落ち度があるため）。しかし、第三者Cにうっかり不注意（過失）がある場合は無敵ステータスではないため、騙された被害者Aが勝利して土地を取り戻すことができます！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(A加Bの詐欺|Cが知らない|AはCに対して)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(することができる|請求することが)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = " / ";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+        
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 3) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 17, next_html: "18",
+        title: "【重要用語17】自己契約・双方代理（利益相反行為の原則禁止と例外）",
+        base_statement: "Aから土地の売却を頼まれた代理人Bが、Aに内緒で自らが買主となって契約を結んだ（自己契約）。<span class=\"judge-underline\">本人の許諾（あらかじめの同意）がない限り</span>、この自己契約による売買は有効となるか、それとも無権代理とみなされるか。",
+        tokens: ["本人の許諾がない", "自己契約および双方代理は、", "原則として", "無権代理行為と", "みなされるため、", "本人が後から追認しない限り", "本人に効果は", "帰属しない。"],
+        
+        dictionary: [
+            { term: "17. 自己契約・双方代理", definition: "自己契約は代理人が買主を兼ねること。双方代理は1人の代理人が売主・買主両方の味方をすること。いずれも本人の利益を害する（高く売りたい売主と安く買いたい買主が対立する）ため原則禁止です。" },
+            { term: "無権代理とみなす", definition: "禁止を破って行った自己契約・双方代理は、法律上「ただの無権代理行為」として扱われます（一発で絶対的無効になるわけではありません）。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：本人の許諾がない自己契約（本問の正解）", text: "Aに相談もせず、代理人Bが勝手に買主を兼ねて契約書類を作ってしまったケース。", sentence_override: "民法第108条により原則禁止。本人の許諾がない場合は【無権代理行為とみなされる】ため、Aが後から追認しない限り効果は及ばない。", watershed: "内緒でやった自己契約は『無権代理行為』として処理される！", winner: "無権代理とみなす", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：あらかじめ本人の許諾を得ていた場合は？", text: "売主Aが「Bさん、あなたが気に入ったら自分で買っていいよ」と事前に許可を出していたら？", sentence_override: "本人の許諾がある場合は利益侵害の恐れがないため、例外として【最初から完全な有権代理として有効】に成立する。", watershed: "事前に許可（許諾）をとっていたなら文句なしに有効確定！", winner: "完全有効（契約成立）", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：契約の履行（単なる債務の受け渡し）だったら？", text: "新しい契約を結ぶのではなく、すでに決まっている契約に基いて「Aの口座からBの口座へ代金を移す」手続きをBが双方代理したら？", sentence_override: "単なる「債務の履行」であれば、新しい利益の対立が起きないため、本人の許可がなくても【いつでも双方代理で有効に行うことができる】。", watershed: "すでに決まったお支払いの処理（債務の履行）なら許可なしでOK！", winner: "単独で有効処理可能", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『違反した契約は追認すらできない絶対無効』の罠", text: "「自己契約・双方代理に違反した取引は、本人が後からどれだけ認めようとも絶対に有効にできない」と言い切ってきたら？", sentence_override: "「無権代理」とみなされるため、本人が後から「追認」すれば【過去にさかのぼって有効に生き返る】。したがって絶対無効とする記述は誤り。", watershed: "完全無効ではなく、あくまで『無権代理（追認チャンスあり）』！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "自己契約・双方代理は、本人の利益を脅かすため法律でガッチリ禁止されています！ただし、禁止を破った取引の着地は「完全無効」ではなく、**「無権代理行為とみなされる」**という点が試験の最大急所です！つまり、本人が後から「まぁいいよ」と追認すれば有効にできる余地が残されています。"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(本人の許諾がない|自己契約および双方代理は|本人に効果は)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(帰属しない|帰属する|みなされるため)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

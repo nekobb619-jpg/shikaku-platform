@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 13, next_html: "14",
+        title: "【重要用語13】第三者による詐欺（相手方の知・不知と取消要件）",
+        base_statement: "Aは、Bと不動産の売買契約を結んだが、これはまったく関係のない第三者Cにだまされた（第三者詐欺）ものだった。<span class=\"judge-underline\">契約の相手方Bが、Cの詐欺の事実を全く知らなかった（善意無過失）場合</span>、AはBとの契約を取り消すことができるか。",
+        tokens: ["第三者が詐欺を", "働いた場合において、", "相手方がその事実を", "知らなかった（善意無過失）", "ときには、", "騙された表意者Aは", "売買契約を", "取り消すことが", "できない。"],
+        
+        dictionary: [
+            { term: "13. 第三者による詐欺（だいさんしゃさぎ）", definition: "取引の当事者（AとB）以外の部外者Cが嘘をついて、Aを騙してBと契約させたシチュエーションを指します。" },
+            { term: "当事者間の詐欺との違い", definition: "相手方B自身が騙してきたならいつでも取り消せますが、部外者Cが勝手に騙した場合は、何も知らない相手方Bの信頼も守る必要があります。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：第三者詐欺 × 相手方が善意無過失（本問の正解）", text: "騙した部外者C。しかし、契約相手のBはそんな事情を1ミリも知らないクリーンな状態だったら？", sentence_override: "民法第96条2項により、相手方が事実を知らなかった（善意無過失）ときは【取り消すことができない】。何も知らずに取引したBが最優先で保護される。", watershed: "相手方が善意無過失なら、Bの信頼を守るためAは取消不可！", winner: "相手方Bの勝ち", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：第三者詐欺 × 相手方が悪意（または有過失）なら？", text: "部外者CがAを騙していることを、契約相手のBが「あいつ騙されてるな」と知っていた場合は？", sentence_override: "相手方Bが事実を知っていた（悪意）、または不注意で気づかなかった（有過失）ときは、Bを保護する必要がないため【Aは契約を取り消すことができる】。", watershed: "相手方が「知っていた（悪意）」または「過失あり」なら被害者Aの勝ち！", winner: "被害者Aの勝ち", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【超重要対比】これがもし『第三者による強迫』だったら？", text: "だまされたのではなく、部外者Cに刃物を突きつけられて（強迫）Bと契約させられた場合は？", sentence_override: "強迫は被害者の保護が絶対。相手方Bがどれほど事情を知らない善意無過失であっても、Aは【いつでも契約を取り消すことができる】。", watershed: "第三者「強迫」なら相手方の状態に関わらず、いつでも取消可能！", winner: "被害者Aの勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『第三者が騙した場合は相手方の状態に関わらず常に取消可能』の罠", text: "「誰に騙されたとしても、詐欺があった以上はいかなる場合でも契約を白紙に戻せる」と言い切ってきたら？", sentence_override: "相手方Bが善意無過失なら取り消せないという強力なブロック要件があるため、この記述は100%【誤り】となる。", watershed: "騙したのが「契約相手」か「まったくの部外者」かでルールが激変！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "第三者詐欺のポイントは「相手方Bのステータス」です！騙したのが契約相手ではなく、無関係な部外者Cである場合、何も知らずに取引に臨んだ相手方Bを守るため、Bが善意無過失であればAは取り消せなくなります！ただし「第三者強迫」なら、Bが善意無過失でも取り消せるという、詐欺・強迫の対比トラップに警戒しましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(第三者が詐欺を|相手方がその事実を|騙された表意者Aは)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(できない|できる)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

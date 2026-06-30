@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 5, next_html: "6",
+        title: "【重要用語5】過失相殺（不法行為と裁判所の義務規定）",
+        base_statement: "不法行為に基づく損害賠償請求において、被害者にも過失が認められるとき、<span class=\"judge-underline\">裁判所は、加害者からの過失相殺の申立てがなくても</span>、職権で必ず被害者の過失を考慮して賠償額を減額しなければならないか。",
+        tokens: ["不法行為において", "被害者に過失が", "認められるとき、", "裁判所は", "職権により必ず", "過失相殺を考慮して", "賠償額を減額", "しなければならない。"],
+        
+        dictionary: [
+            { term: "5. 過失相殺（かしつそうさい）", definition: "損害賠償額を決める際、被害者側にもうっかり不注意（過失）があれば、その分だけ賠償額を引き算（相殺）する仕組みです。" },
+            { term: "不法行為（ふほうこうい）", definition: "交通事故などのように、故意や過失で他人の権利を侵害し損害を与えること。加害者は賠償義務を負います。" },
+            { term: "職権（しょっけん）", definition: "当事者からのリクエスト（申立て）がなくても、裁判所が自らの判断で自動的にルールを実行すること。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：【文末ひっかけ】『減額することができる（任意）』だったら？", text: "選択肢の最後が「裁判所は、被害者の過失を考慮して賠償額を減額することが『できる』」と書かれていたパターン。", sentence_override: "「できる」だと減額しなくても良い（任意）意味になってしまう。法律上、過失相殺は強制引き算規定なのでこの記述は【誤り】となる。", watershed: "「できる（任意）」ではなく「しなければならない（義務）」", winner: "ひっかけ文章", is_correct_track: false },
+            { id: 2, label: "🔍 パターンB：不法行為 × 職権による必要的過失相殺（本問の正解）", text: "加害者から要求されなくても、被害者に落ち度があるなら裁判所は自動で引き算すべき？", sentence_override: "不法行為の過失相殺は、加害者の申立てがなくても、裁判所は職権で【必ず考慮して減額しなければならない】という強い義務である。", watershed: "申立てがなくても、裁判所は『必ず職権で減額する義務』がある！", winner: "必要的減額（裁判所の義務）", is_correct_track: true },
+            { id: 3, label: "🔍 パターンC：【対比ケース】『債務不履行（約束破り）』の過失相殺は？", text: "交通事故（不法行為）ではなく、売買契約の約束破り（債務不履行）の過失相殺のルールは？", sentence_override: "民法改正により、債務不履行の過失相殺も『必ず考慮して減額しなければならない』に統一され、不法行為と全く同じ【義務】となった。", watershed: "法改正により『不法行為』も『債務不履行』もどちらも100%考慮義務！", winner: "どちらも必ず考慮（義務）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：もし被害者の過失が完全に1ミリもないクリーンな状態なら？", text: "被害者に何の落ち度もなく、加害者が100%悪いのに、加害者側が「過失相殺を考慮しろ！」と求めたら？", sentence_override: "被害者に過失がない以上、引き算する根拠がゼロ。裁判所は相殺を適用せず、加害者に【全額賠償の判決】を下す。", watershed: "被害者に過失がないなら、当然引き算（相殺）はゼロ！", winner: "加害者の完全敗北", is_correct_track: false }
+        ],
+        commentary: "不法行為でも契約違反（債務不履行）でも、被害者側にうっかり過失があった場合、裁判所は「減額できる（任意）」ではなく、**「必ず考慮して減額しなければならない（義務規定）」**に法改正で統一されました！申立てがなくても職権で自動適用されます！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(裁判所は|不法行為において|職権により)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(しなければならない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 2) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
+

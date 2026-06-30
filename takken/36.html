@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4つの選択肢）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 36, next_html: "37",
+        title: "【重要用語36】信頼関係破壊の法理（無断転貸と大家の解約制限ルール）",
+        base_statement: "Aは大家Bに無断で、借りている一軒家を友人Cに又貸し（無断転貸）した。激怒した大家Bは、即座に契約を解除してAに立ち退きを求めた。しかし、Aが又貸しした理由は「たった1週間、出張の間に留守番と庭の水やりを信頼できる親友Cに頼んだだけ（大家への裏切り度が著しく低い状態）」だった。<span class=\"judge-underline\">大家Bは、無断転貸の事実があることを理由に</span>、直ちに契約を解除して追い出すことができるか。",
+        tokens: ["無断転貸の事実が", "ある場合であっても、", "それが大家への", "裏切り（信頼関係の破壊）に", "至らない特段の事情が", "あるときには、", "大家Bは契約を", "解除することが", "できない。"],
+        
+        dictionary: [
+            { term: "36. 信頼関係破壊の法理（しんらいかんけいはかい）", definition: "賃貸借契約は長期に及ぶ強い信頼関係で成り立つため、形式的なルール違反（無断転貸や家賃のわずかな滞納など）があっても、お互いの「信頼関係が根本から崩壊した」と言えるレベルでない限り、大家からの解除を制限する判例法理です。" },
+            { term: "無断転貸（むだんてんたい）", definition: "大家に内緒で、借りている部屋や土地を別の人（C）に又貸しして使わせること。民法第612条では原則として「即解除してOK」となっていますが、判例によって牙が抜かれています。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：無断転貸 × 信頼関係を破壊しない特段の事情（本問の正解）", text: "留守番目的で1週間だけ親友に貸した。ルール上は完全な無断転貸だが、大家は追い出せる？", sentence_override: "最高裁の超重要判例。無断転貸があっても、大家に対する背信行為（裏切り）と認めるに足りない特段の事情があるときは【大家は契約を解除することができない】。Aの住む権利が守られます。", watershed: "ルール違反があっても、裏切り度が低い（信頼破壊なし）なら、大家の負け！", winner: "大家Bからの解除は不可能", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：【ひっかけ】『民法の条文通り、無断転貸があれば一律で即解除できる』？", text: "選択肢が「民法第612条において『無断転貸をしたときは解除できる』と明記されているため、理由を問わず一律に即解除が可能である」と言い切ってきたら？", sentence_override: "宅建試験で最も受験生をふるい落とす「条文 vs 判例」の罠。日本の裁判では条文より「信頼関係破壊の法理」が圧倒的に優先されるため、一律解除とする記述は【誤り】です。", watershed: "民法の条文（原則）を押し通そうとする選択肢は、判例（例外）によって粉砕される！", winner: "ひっかけ文章", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【ガチ裏切り】がっつり家賃をとって、知らない他人に何年も又貸ししていたら？", text: "Aが大家Bに内緒で、部屋を民泊物件としてネットで貸し出し、見知らぬ外国人を大量に住まわせて大儲けしていた場合は？", sentence_override: "文句なしのガチ裏切り行為。信頼関係は完全に木っ端微塵に破壊されているため、大家Bは【事前の催告（警告）すら必要なく、一発で即座に契約を解除できる】。", watershed: "本当の裏切り（信頼破壊あり）なら、大家は猶予なしで一撃必殺の無催告解除が可能！", winner: "大家Bの勝ち（一発即解除）", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『無断転貸をしても、Cが実際に住み始める前ならセーフ』の罠", text: "「又貸しの契約をCと交わしただけで、Cがまだ荷物を運び込んで引っ越してくる前であれば、大家は解除できない」という罠。", sentence_override: "又貸しの契約（転貸借契約）を交わして引き渡せる状態にした時点で、無権限の譲渡・転貸という裏切り行為は成立している。Cが入居する前であっても【信頼破壊があれば解除できる】ため誤り。", watershed: "住み始める前でも、裏切りの契約が成立した時点でアウト！", winner: "ひっかけ文章", is_correct_track: false }
+        ],
+        commentary: "民法の条文（612条）には「無断で又貸ししたら大家は即解除して追い出していい」と書かれています。しかし、日本の不動産裁判には**「信頼関係破壊の法理（最高裁）」**という超強力な特別ルールが存在します！ただのルール違反であっても、今回の「1週間の留守番」のように大家を裏切る意図が極めて低い場合は、信頼関係が壊れたとは言えないため、例外として**「大家は解除できない（入居者の勝ち）」**になります。試験では「条文に書いてあるから常に解除できる」という原則の押し売り罠が100%出ますので、この判例バリアの存在を完璧にマスターしましょう！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(無断転貸の事実が|信頼関係の破壊に|大家Bは契約を)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(解除することが|できない|至らない特段の事情が)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `<div class="nuance-header">${nu.label}</div><div class="nav-text">${nu.text}</div><div class="card-inner-board"><div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div><div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div><div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div></div>`;
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1) ? "#30d158" : "#ff453a";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <span class="exam-label">⚖️ ジャッジ対象の本試験問題</span>
+    <div class="stage-title" id="title-node"></div>
+    <div class="problem-statement" id="statement-node"></div>
+
+    <div class="slash-sentence-container" id="sentence-box"></div>
+
+    <div class="dict-section-title">📖 この問題を解くための重要用語辞典（タップで展開）</div>
+    <div id="dictionary-box"></div>
+
+    <div class="dict-section-title" style="color:#ff9f0a;">🧪 条件変更シミュレーター（4択シャッフル配置）</div>
+    <div class="nuance-grid" id="nuance-grid-box"></div>
+
+<script>
+    const stageData = {
+        number: 22, next_html: "23",
+        title: "【重要用語22】相続と登記（遺産分割の前後における第三者との対抗関係）",
+        base_statement: "Aが死亡し、共同相続人となった兄弟BとC。遺産分割協議によって土地を兄Bが単独で相続することに決まったが、Bがまだ自分の名義に書き換えていない（登記前）うちに、弟Cが勝手に自分の持分を第三者Dに売却して登記を移してしまった。<span class=\"judge-underline\">遺産分割で土地を手に入れたはずのBは、登記なしで第三者Dに対して</span>自分の権利を主張できるか。",
+        tokens: ["遺産分割による", "権利の取得は", "分割の後に現れた", "第三者Dに対しては、", "登記がなければ", "所有権の取得を", "対抗することが", "できない。"],
+        
+        dictionary: [
+            { term: "22. 相続と登記（そうぞくととうき）", definition: "財産の引き継ぎ。遺産の分け合い（遺産分割）の「前」なのか「後」なのかで、登記が必要になるかどうかのルールが真っ二つに分かれます。" },
+            { term: "遺産分割（いさんぶんかつ）", definition: "相続人全員で話し合って「この土地は兄貴がもらう、預金は弟がもらう」と財産を具体的に仕分ける手続きのことです。" }
+        ],
+        
+        nuances: [
+            { id: 1, label: "🔍 パターンA：遺産分割【後】に現れた第三者との関係（本問の正解）", text: "話し合いで兄Bの物と決まった「後」に、弟Cが裏切ってDに転売。BとDの決着は？", sentence_override: "遺産分割の『後』に現れた第三者Dとの関係は、完全な対抗関係（早い者勝ち）となります。登記を先に取られたBはDに勝てません。", watershed: "遺産分割の「後」のトラブルなら、通常の二重譲渡と同じ『登記の早い者勝ち』！", winner: "第三者Dの勝ち", is_correct_track: true },
+            { id: 2, label: "🔍 パターンB：遺産分割【前】に現れた第三者（差押債権者など）なら？", text: "まだ遺産分割の話し合いをする「前」の段階で、借金まみれの弟Cの持分を、Cの債権者が差し押さえて登記した場合は？", sentence_override: "遺産分割の効果は相続時にさかのぼるが、分割『前』に現れた第三者の権利は害せません。Bは弟Cの法定持分については勝てません。", watershed: "遺産分割の「前」であっても、法定持分を超える部分は登記がないと第三者に勝てない！", winner: "第三者の勝ち", is_correct_track: false },
+            { id: 3, label: "🔍 パターンC：【対比ケース】『遺言による相続（特定の遺贈）』だったら？", text: "話し合いではなく、親が「すべての土地を兄Bに相続させる」という遺言を遺しており、それを知らない弟Cが勝手にDに転売した場合は？", sentence_override: "遺言による相続であっても、自分の本来の枠（法定相続分）を超える部分については、登記がなければ第三者Dに対抗できません。", watershed: "法改正により、遺言相続も法定相続分を超える分は『登記が必要』！", winner: "第三者Dの勝ち", is_correct_track: false },
+            { id: 4, label: "🔍 パターンD：『相続人が一人だけのケース（単独相続）』の第三者トラブル", text: "親Aが死亡し一人息子のBが単独相続。Aの生前に土地を買い受けていたが登記をしていなかったXが、Bに対して「俺の土地だ！」と主張してきたら？", sentence_override: "相続人Bは、元の所有者Aの地位をそのままコピーした当事者そのもの。買主Xは登記がなくてもBに100%所有権を主張できます。", watershed: "単独相続人は売主と全く同じ扱い！登記なしの買主Xでも100%勝てる！", winner: "買主Xの勝ち（登記不要）", is_correct_track: false }
+        ],
+        commentary: "遺産分割協議によって自分が土地を手に入れた「後」に、他の相続人が勝手に第三者に売って登記を移してしまった場合、これは通常の二重譲渡と全く同じ**「登記の早い者勝ち（対抗関係）」**になります！そのため、登記を先にとられた兄Bは第三者Dに勝てません。相続だからといって安心せず、分割後は速やかに名義変更をしなければならないという教訓です！"
+    };
+
+    let selectedNuanceId = null;
+    window.onload = function() { initStage(); };
+
+    window.addEventListener("message", function(event) {
+        if (event.data && event.data.command === "RESET") { resetMarkings(); }
+        if (event.data && event.data.command === "SUBMIT") { executeSubmitCheck(); }
+    });
+
+    function initStage() {
+        document.getElementById("title-node").innerText = stageData.title; document.getElementById("statement-node").innerHTML = stageData.base_statement;
+        const box = document.getElementById("sentence-box"); box.innerHTML = "";
+        stageData.tokens.forEach((part, idx) => {
+            const token = document.createElement("span"); token.className = "word-token"; token.innerText = part;
+            token.onclick = function() {
+                if (part.match(/(遺産分割による|権利の取得は|第三者Dに対しては)/)) token.classList.toggle("mark-subject");
+                else if (part.match(/(登記がなければ|対抗することが|できない)/)) token.classList.toggle("mark-end");
+            };
+            box.appendChild(token);
+            if (idx < stageData.tokens.length - 1) {
+                const trigger = document.createElement("span"); trigger.className = "slash-trigger"; trigger.innerText = "・";
+                trigger.onclick = function() { trigger.innerText = (trigger.innerText === "・") ? " / " : "・"; trigger.classList.toggle("active"); };
+                box.appendChild(trigger);
+            }
+        });
+        
+        const dictBox = document.getElementById("dictionary-box"); dictBox.innerHTML = "";
+        stageData.dictionary.forEach(item => {
+            const acc = document.createElement("div"); acc.className = "term-accordion";
+            acc.innerHTML = `<div class="term-header" onclick="toggleAccordion(this)"><span>${item.term}</span> <span>▼</span></div><div class="term-body">${item.definition}</div>`;
+            dictBox.appendChild(acc);
+        });
+
+        // 🔀 4択シャッフルエンジン
+        const grid = document.getElementById("nuance-grid-box"); grid.innerHTML = "";
+        const shuffledNuances = [...stageData.nuances];
+        for (let i = shuffledNuances.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledNuances[i], shuffledNuances[j]] = [shuffledNuances[j], shuffledNuances[i]];
+        }
+
+        shuffledNuances.forEach(nu => {
+            const card = document.createElement("div"); card.className = "nuance-card"; card.id = "card-" + nu.id;
+            card.innerHTML = `
+                <div class="nuance-header">${nu.label}</div>
+                <div class="nav-text">${nu.text}</div>
+                <div class="card-inner-board">
+                    <div style="font-size:14px; color:#fff; margin-bottom:6px;">${nu.sentence_override}</div>
+                    <div class="watershed-container"><div class="watershed-keyword">${nu.watershed}</div></div>
+                    <div class="board-flex"><span>結論：</span><span class="win-badge" id="badge-${nu.id}"></span></div>
+                </div>`;
+            
+            card.onclick = function() {
+                document.querySelectorAll(".nuance-card").forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected"); selectedNuanceId = nu.id;
+                
+                // 結論バッジのテキストと色のダイナミック書き換え
+                const badge = document.getElementById("badge-" + nu.id);
+                badge.innerText = nu.winner;
+                badge.style.background = (nu.id === 1 || nu.id === 2 || nu.id === 3) ? "#ff453a" : "#30d158";
+            };
+            grid.appendChild(card);
+        });
+    }
+    function toggleAccordion(header) { const body = header.nextElementSibling; body.style.display = (body.style.display === "block") ? "none" : "block"; }
+    function resetMarkings() { initStage(); }
+    function executeSubmitCheck() {
+        if (!selectedNuanceId) { alert("💡 パターンを選択してください！"); return; }
+        if (stageData.nuances.find(n => n.id === selectedNuanceId).is_correct_track) {
+            alert("🎉 正解！！！\n\n" + stageData.commentary); window.parent.postMessage({ action: "NEXT_STAGE", currentNum: stageData.number }, "*");
+        } else { alert("❌ 残念！条件が一致していません。"); }
+    }
+</script>
+</body>
+</html>
